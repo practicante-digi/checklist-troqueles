@@ -1,0 +1,940 @@
+.accordion-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease-out;
+    padding: 0 1rem;
+}
+
+.accordion-content.open {
+    max-height: 70vh; /* Máximo 70% de la altura de la pantalla para desktop y móvil */
+    overflow-y: auto; /* Permitir scroll vertical siempre que sea necesario */
+    overflow-x: hidden; /* Ocultar scroll horizontal */
+    padding-bottom: 0.5rem;
+    padding-right: 0.5rem; /* Espacio para la barra de scroll */
+    
+    /* Scroll suave para todos los dispositivos */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    
+    /* Sombra interna sutil para indicar contenido scrolleable */
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Personalizar la barra de scroll para todos los dispositivos */
+.accordion-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.accordion-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.accordion-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+    border: 1px solid #f1f1f1;
+}
+
+.accordion-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Indicadores visuales de scroll para todos los dispositivos */
+.accordion-content.open .task-list {
+    position: relative;
+}
+
+/* Gradiente sutil al inicio para indicar scroll disponible */
+.accordion-content.open .task-list::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), transparent);
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Gradiente sutil al final para indicar más contenido */
+.accordion-content.open .task-list::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent);
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Mostrar gradientes cuando hay contenido que requiere scroll */
+.accordion-content.open:hover .task-list::before,
+.accordion-content.open:hover .task-list::after {
+    opacity: 1;
+}
+
+/* Estilos específicos para móviles - Ajustes adicionales */
+@media (max-width: 768px) {
+    .accordion-content.open {
+        max-height: 60vh; /* Menor altura en móviles para dejar más espacio */
+    }
+    
+    /* Barra de scroll más delgada en móviles */
+    .accordion-content::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .accordion-content::-webkit-scrollbar-track {
+        border-radius: 3px;
+    }
+    
+    .accordion-content::-webkit-scrollbar-thumb {
+        border-radius: 3px;
+    }
+}
+
+/* Estilos para los comentarios */
+.task-comment-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    margin: 0;
+    padding: 0;
+}
+
+.task-comment-container.visible {
+    max-height: 200px;
+    margin-top: 0.75rem;
+    padding-bottom: 0.5rem;
+}
+
+.task-comment {
+    width: 100%;
+    min-height: 80px;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.task-comment:focus {
+    outline: none;
+}
+
+/* Estilos para el contenedor de comentarios */
+.task-comment-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    margin: 0;
+    padding: 0;
+}
+
+.task-comment-container.visible {
+    max-height: 200px;
+    margin-top: 0.75rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Estilos para los textareas de comentarios */
+.task-comment {
+    width: 100%;
+    min-height: 80px;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.task-comment.visible {
+    opacity: 1;
+    transform: translateY(0);
+    display: block;
+}
+
+/* Estilos para el botón de ver comentario */
+.view-comment-btn {
+    transition: all 0.2s ease;
+    background-color: #F3F4F6 !important;
+    color: #4B5563 !important;
+    border: 1px solid #D1D5DB !important;
+    padding: 0.4rem 0.75rem;
+    height: 2rem;
+    min-height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-width: auto;
+    white-space: nowrap;
+    margin-left: 0.5rem;
+}
+
+.view-comment-btn:hover {
+    background-color: #E5E7EB !important;
+    color: #1F2937 !important;
+}
+
+/* Estilos para transiciones del modal */
+#confirmation-modal {
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+}
+
+#confirmation-modal.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#confirmation-modal:not(.hidden) {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Asegurar que el contenido del modal tenga una transición suave */
+#confirmation-modal > div {
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+              opacity 0.4s ease-out;
+  transform-origin: center center;
+}
+
+#confirmation-modal.hidden > div {
+  transform: translateY(-30px) scale(0.95);
+  opacity: 0;
+}
+
+#confirmation-modal:not(.hidden) > div {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Transiciones suaves para cambio de contenido del modal */
+#modal-content-summary,
+#modal-content-loading,
+#modal-content-success {
+  transition: all 0.4s ease-in-out;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#modal-content-summary.hidden,
+#modal-content-loading.hidden,
+#modal-content-success.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Animación para el spinner de carga */
+#modal-content-loading .animate-spin {
+  animation: spin 1.5s linear infinite;
+}
+
+/* Animación para los puntos de carga */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+#modal-content-loading .animate-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Estilos para el contador regresivo */
+#countdown-timer {
+  font-weight: 600;
+  color: #f97316; /* orange-500 */
+  font-size: 1rem;
+  display: inline-block;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Estilos para el botón de cerrar en la pantalla de éxito */
+#modal-success-close-button {
+  transition: all 0.2s ease-out;
+  border: 1px solid #e5e7eb;
+}
+
+#modal-success-close-button:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#modal-success-close-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Animación especial para el ícono de éxito */
+#modal-content-success svg {
+  animation: successPulse 0.8s ease-out;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Animación para el contenido de éxito */
+#modal-content-success h3,
+#modal-content-success p {
+  animation: fadeInUp 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+#modal-content-success p {
+  animation-delay: 0.2s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para móvil */
+@media (max-width: 768px) {
+    .view-comment-btn {
+        margin: 0.5rem 0 0 0;
+        width: 100%;
+    }
+}
+
+/* Estilos responsivos para móviles */
+@media (max-width: 768px) {
+    .view-comment-btn {
+        width: 100%;
+        margin: 0.25rem 0;
+        padding: 0.5rem;
+    }
+}
+
+.view-comment-btn svg {
+    margin-right: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    color: #4B5563 !important;
+}
+
+.view-comment-btn:hover svg {
+    color: #1F2937 !important;
+}
+
+.view-comment-btn.hidden {
+    display: none !important;
+}
+
+/* Estilos base para los botones de tarea */
+.task-button {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    margin: 0.125rem;
+    min-width: auto;
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    height: 2rem;
+    white-space: nowrap;
+}
+
+/* Estilos para el botón Realizado */
+.task-button[data-status="Completado"] {
+    color: #10B981 !important;
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+.task-button[data-status="Completado"]:hover {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Estilos para el botón Realizado cuando está seleccionado */
+.task-button[data-status="Completado"].bg-orange-600 {
+    background-color: #10B981 !important;
+    color: white !important;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.task-button[data-status="Completado"].bg-orange-600:hover {
+    background-color: #0d9c6e !important;
+}
+
+/* Estilos para el botón No Realizado */
+.task-button[data-status="No Completado"] {
+    color: #EF4444 !important;
+    background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.task-button[data-status="No Completado"]:hover {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+/* Estilos para el botón No Realizado cuando está seleccionado */
+.task-button[data-status="No Completado"].bg-orange-600 {
+    background-color: #EF4444 !important;
+    color: white !important;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.task-button[data-status="No Completado"].bg-orange-600:hover {
+    background-color: #dc2626 !important;
+}
+
+/* Estilos para el contenedor de botones */
+.task-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+/* Fila de botones Realizado/No Realizado */
+.task-buttons-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Estilos responsivos para móviles */
+@media (max-width: 768px) {
+    .task-row {
+        padding: 0.5rem 0;
+    }
+    
+    .task-row > div {
+        width: 100%;
+    }
+    
+    /* Contenedor principal de botones en móvil */
+    .task-buttons-container {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    /* Fila de botones Realizado/No Realizado en móvil */
+    .task-buttons-row {
+        width: 100%;
+    }
+    
+    .task-button {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+        height: 2.25rem;
+        margin: 0;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.375rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .task-button svg {
+        margin-right: 0.25rem;
+        width: 1rem;
+        height: 1rem;
+    }
+    
+    /* Botón de Ver Comentario */
+    .view-comment-btn {
+        margin-top: 0.5rem;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.5rem;
+        height: 2.25rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Ajuste para mostrar la hora debajo de la fecha en dispositivos móviles */
+@media (max-width: 768px) {
+  #header-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #header-date span {
+    margin-left: 0; /* Eliminar margen izquierdo en móvil */
+  }
+}
+
+.accordion-trigger.open .accordion-chevron {
+    transform: rotate(180deg);
+}
+
+.accordion-trigger {
+    color: #373a36;
+}
+
+.text_primary_color {
+    color: #373a36;
+}
+.text_secondary_color {
+    color: #c7c8c7;
+
+}
+
+.button_primary_color {
+    background-color: #ff5c35;
+    color: #ffffff;
+}
+
+/* --- Estilos del Toast (Notificación) - Diseño Modal --- */
+.toast {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    z-index: 30;
+    max-width: 28rem;
+    
+    /* Oculto por defecto */
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+}
+
+.toast.show {
+    /* Visible con animación elegante */
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: none; /* El contenedor no bloquea interacciones */
+}
+
+/* El contenido del toast sí debe ser interactivo */
+.toast.show > div {
+    pointer-events: auto;
+}
+
+/* Contenedor del toast con sombra modal */
+.toast > div {
+    backdrop-filter: blur(8px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Estilos para los iconos según el tipo */
+.toast-icon-success {
+    background-color: #10B981; /* green-500 */
+    color: white;
+}
+
+.toast-icon-error {
+    background-color: #EF4444; /* red-500 */
+    color: white;
+}
+
+.toast-icon-destructive {
+    background-color: #EF4444; /* red-500 */
+    color: white;
+}
+
+.toast-icon-info {
+    background-color: #3B82F6; /* blue-500 */
+    color: white;
+}
+
+/* Animación para el icono */
+.toast-icon-animate {
+    animation: toastIconPulse 0.6s ease-out;
+}
+
+@keyframes toastIconPulse {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Animación para el contenido del toast */
+.toast-content-animate {
+    animation: toastContentSlide 0.5s ease-out;
+}
+
+@keyframes toastContentSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ajustes responsivos para el toast en teléfonos y tablets */
+@media (max-width: 768px) {
+    .toast {
+        top: 1.5rem; /* Muy cerca del header */
+        bottom: auto;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%) translateY(-30px) scale(0.95);
+        max-width: calc(100% - 2rem);
+        width: 90%;
+    }
+    
+    .toast.show {
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    
+    /* Ajustar el layout en móvil para ser más compacto */
+    .toast .flex {
+        align-items: flex-start;
+    }
+    
+    .toast #toast-icon-container {
+        margin-right: 0.75rem;
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+    
+    .toast #toast-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+    
+    .toast #toast-title {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .toast #toast-description {
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+}
+
+/* --- Clase Utilitaria --- */
+.hidden {
+    display: none;
+}
+
+/* Sutil animación para mensajes inline (feedback minimalista) */
+.fade-in {
+  animation: fadeIn 200ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos para secciones completadas del acordeón */
+
+/* Opción 1: Minimalista con Check Verde (Recomendada) */
+.accordion-trigger.section-complete {
+  color: #15803d; /* Verde oscuro */
+  background-color: #f0fdf4; /* Fondo verde muy claro */
+  border-left: 4px solid #22c55e; /* Borde verde */
+  padding-left: calc(1rem - 4px); /* Ajusta padding por el borde */
+  transition: all 300ms ease-out;
+}
+
+.accordion-trigger.section-complete::before {
+  content: "✓";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  background-color: #22c55e; /* Verde brillante */
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 0.9em;
+  animation: checkAppear 300ms ease-out;
+}
+
+/* Corrección de la animación checkAppear */
+@keyframes checkAppear {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.task-comment-required {
+    border-color: #EF4444 !important; /* red-500 */
+}
+
+.task-comment-required::placeholder {
+    color: #B91C1C; /* red-700 */
+    opacity: 1;
+    font-weight: 500;
+}
+
+.task-comment-required:focus {
+    border-color: #DC2626 !important; /* red-600 */
+}
+
+/* Animación para campo requerido */
+@keyframes requiredPulse {
+    0%, 100% {
+        border-color: #EF4444;
+        background-color: #FEF2F2;
+    }
+    50% {
+        border-color: #DC2626;
+        background-color: #FECACA;
+    }
+}
+
+
+/* Estilos para el botón de finalizar deshabilitado */
+#save-button:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+#save-button:disabled:hover {
+    background-color: #ff5c35 !important; /* Mantener el color original */
+    transform: none !important;
+}
+
+/* Asegurar que las clases de deshabilitado tengan prioridad */
+#save-button.opacity-50 {
+    opacity: 0.5 !important;
+}
+
+#save-button.cursor-not-allowed {
+    cursor: not-allowed !important;
+}
+
+/* Estilo para centrar el ícono dentro del círculo */
+#toast-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 3rem; /* Tamaño del círculo */
+    width: 3rem;  /* Tamaño del círculo */
+    border-radius: 50%; /* Asegura que sea un círculo */
+    background-color: #10B981; /* Verde consistente */
+}
+
+/* Estilo del ícono dentro del círculo */
+#toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.5rem; /* Tamaño del ícono */
+    width: 1.5rem;  /* Tamaño del ícono */
+    color: white; /* Ícono blanco para contraste */
+}
+
+/* Ajustes responsivos para el toast */
+@media (max-width: 768px) {
+    #toast-icon-container {
+        height: 2.5rem; /* Tamaño más pequeño en móvil */
+        width: 2.5rem;  /* Tamaño más pequeño en móvil */
+        background-color: #10B981; /* Verde consistente */
+    }
+
+    #toast-icon {
+        height: 1.25rem; /* Ícono más pequeño en móvil */
+        width: 1.25rem;  /* Ícono más pequeño en móvil */
+    }
+    
+    /* Ajustes adicionales específicos para móviles */
+}
+
+/* --- Estilos para las pestañas en el header --- */
+.header-tabs {
+    display: flex;
+    gap: 0;
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+}
+
+.header-tab-button {
+    color: #64748b;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    padding: 0.5rem 1rem;
+    border-radius: 0;
+}
+
+.header-tab-button:hover {
+    color: #475569;
+    background-color: transparent;
+}
+
+.header-tab-button.active {
+    color: #ff5c35;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+/* Header siempre visible por encima del contenido */
+header {
+    position: relative;
+    z-index: 20; /* Mayor que fullscreen-powerbi (z-index: 10) */
+    background-color: white;
+}
+
+/* Contenido de las pestañas */
+.tab-content {
+    animation: fadeInContent 0.3s ease-in-out;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
+@keyframes fadeInContent {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estilos para el contenedor de Power BI en pantalla completa */
+.fullscreen-powerbi {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    background-color: white;
+    padding-top: 114px; /* Espacio para el header */
+    overflow: hidden;
+}
+
+#power-bi-iframe {
+    border: none;
+    background: white;
+    width: 100%;
+    height: calc(100% + 37px);
+}
+
+/* Responsive para las pestañas en móviles */
+@media (max-width: 768px) {
+    .header-tabs {
+        margin: 0.5rem 0;
+    }
+    
+    .header-tab-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Ajuste del padding superior para móviles */
+    .fullscreen-powerbi {
+        padding-top: 140px; /* Más espacio en móviles */
+    }
+}
+
+@media (max-width: 640px) {
+    .fullscreen-powerbi {
+        padding-top: 160px; /* Aún más espacio en pantallas muy pequeñas */
+    }
+    
+    .header-tab-button {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Estilos para Doble Buffering (Refresco Invisible) */
+#powerbi-container {
+    position: relative;
+    width: 100%;
+    height: 100%; /* Si usas el truco de ocultar barra, usa calc(100% + 37px) */
+    overflow: hidden;
+}
+
+
+/* --- ESTILOS PARA EL MONITOR/DASHBOARD --- */
+
+/* Clase base para los iframes del monitor */
+.pbi-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% + 58px); /* Ajuste para evitar barra inferior */
+    border: none;
+    background-color: white; /* Vital para tapar lo de atrás */
+    transition: opacity 0.5s ease-in-out; /* Suaviza la entrada */
+}
+
+/* El iframe que se ve (Arriba) */
+.pbi-visible {
+    z-index: 10;
+    opacity: 1;
+}
+
+/* El iframe que carga (Abajo/Detrás) */
+.pbi-loading {
+    z-index: 1;
+    opacity: 1; /* Mantener opaco para no ver transparencias raras */
+}

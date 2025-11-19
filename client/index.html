@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist</title>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link rel="stylesheet" href="output.css"> <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+</head>
+<body class="bg-gray-100">
+  <header class="border-b border-[#c7c8c7] bg-white shadow-sm">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="rounded-lg">
+            <img src="assets/image001.png" alt="logo" class="h-16 w-16 sm:h-20 sm:w-20 object-contain">
+          </div>
+          <div>
+            <h1 class="text-lg sm:text-xl font-bold text_primary_color">Sistema de Mantenimiento</h1>
+            <p class="text-sm text_primary_color">Control de Troqueles</p>
+          </div>
+        </div>
+        
+        <!-- Pestañas de Navegación en el Header -->
+        <div class="header-tabs flex items-center gap-1">
+          <button 
+            id="tab-formulario" 
+            class="header-tab-button active px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200"
+          >
+            Formulario
+          </button>
+          <button 
+            id="tab-informe" 
+            class="header-tab-button px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200"
+          >
+            Monitor
+          </button>
+        </div>
+        
+        <div class="text-center sm:text-right">
+          <div class="flex items-center justify-center sm:justify-end gap-2">
+            <p id="header-date" class="text_primary_color text-sm">Cargando fecha...</p>
+          </div>
+          <div class="flex items-center justify-center sm:justify-end gap-2">
+            <p id="header-timer" class="text_primary_color text-sm hidden text-lg">00:00:00</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor del Formulario de Mantenimiento -->
+  <main id="tab-content-formulario" class="tab-content container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-4xl">
+      <!-- Selectores de Troquel y Técnico -->
+     <div class="mb-6 grid gap-4 md:grid-cols-2">
+       <div class="space-y-2">
+           <label for="troquelesSelect" class="text_primary_color text-base font-semibold">Troquel</label>
+           <select name="troquelesSelect" id="troquelesSelect" class="text_text_primary_color h-12 w-full rounded-md border border-gray-300 bg-white text-base shadow-sm focus:outline-none">
+               <option value="">Seleccionar troquel...</option>
+           </select>
+       </div>
+       <div class="space-y-2">
+           <label for="tech-select" class="text_primary_color text-base font-semibold">Técnico</label>
+           <select name="tech-select" id="tech-select" class="text_text_primary_color h-12 w-full rounded-md border border-gray-300 bg-white text-base shadow-sm focus:outline-none disabled">
+               <option value="">Seleccionar técnico...</option>
+           </select>
+       </div>
+     </div>
+
+     <div id="start-section" class="mt-6 hidden">
+        <div id="start-message" class="text-center mb-4"></div>
+        <button id="start-button" class="button_primary_color flex h-12 w-full items-center justify-center rounded-md px-6 text-base font-semibold text-white shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 hidden">
+            <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Iniciar Mantenimiento
+        </button>
+     </div>
+
+     <!-- Secciones de Checklist -->
+      <div id="accordion-container" class="space-y-4 hidden">   
+      </div>
+
+      <div id="save-button-container" class="mt-6 hidden">
+        <div class="flex flex-col-reverse sm:flex-row gap-4"> 
+            
+            <button id="cancel-button" 
+                    class="flex h-12 w-full sm:w-auto sm:flex-1 lg:w-1/3 items-center justify-center rounded-md bg-gray-200 px-6 text-base font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-300 focus:outline-none">
+              Cancelar
+            </button>
+            
+            <button id="save-button" 
+                    class="flex h-12 w-full sm:w-auto sm:flex-1 lg:w-2/3 items-center justify-center rounded-md button_primary_color px-6 text-base font-semibold text-white shadow-sm transition-all focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+              
+              <span id="save-button-text">
+                <svg class="mr-2 inline h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Finalizar Mantenimiento
+              </span>
+              <span id="save-button-loading" class="hidden">
+                <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                Finalizando...
+              </span>
+
+            </button>
+        </div>
+      </div>
+
+      <template id="task-row-template">
+        <div class="task-row border-b border-gray-200 py-3 last:border-0" data-task-id="">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+            <span class="text-base font-medium text-gray-800 flex-1"></span>
+            <div class="task-buttons-container">
+              <div class="task-buttons-row flex flex-wrap justify-center sm:justify-start">
+                <button class="task-button text-white mr-2 flex h-8 items-center rounded-md bg-white px-3 text-xs font-medium hover:bg-green-50" data-status="Completado">
+                  <svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Realizado
+                </button>
+                <button class="task-button task-button-no-realizado flex h-8 items-center rounded-md bg-white px-4 text-xs font-medium text-red-600 hover:bg-red-50" data-status="No Completado">
+                  <svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  No Realizado
+                </button>
+              </div>
+              <button 
+                class="view-comment-btn hidden h-8 items-center rounded-md bg-blue-50 px-3 text-xs font-medium text-blue-600 hover:bg-blue-100 ml-2 mt-2 sm:mt-0"
+                data-task-id=""
+                data-section=""
+              >
+                <svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Ver comentario
+              </button>
+            </div>
+          </div>
+          <div class="task-comment-container mt-3" style="display: none;">
+            <textarea 
+              class="task-comment task-comment-realizado w-full rounded-md border border-gray-300 p-2 text-sm shadow-sm focus:outline-none"
+              placeholder="Agregar detalles para Realizado..."
+              data-section=""
+              data-task-id=""
+              style="display: none;"
+            ></textarea>
+            <textarea 
+              class="task-comment task-comment-no-realizado w-full rounded-md border border-gray-300 p-2 text-sm shadow-sm focus:outline-none"
+              placeholder="Agregar detalles para No Realizado..."
+              data-section=""
+              data-task-id=""
+              style="display: none;"
+            ></textarea>
+          </div>
+        </div>
+      </template>
+  </main>
+
+  <!-- Contenedor del Informe Power BI - Pantalla Completa -->
+  <div id="tab-content-informe" class="tab-content hidden fullscreen-powerbi">
+    <iframe 
+      id="power-bi-iframe"
+      src="https://app.powerbi.com/view?r=eyJrIjoiODY0OTQxNTItYzZjMS00ZDRkLWExYzgtMmE4ZjIzNzhlN2Y5IiwidCI6IjY0NWE3NDU1LTkzMGItNDk3Ni1iOTFiLTYzOTAxOGEwZGY5OCJ9"
+      frameborder="0" 
+      allowfullscreen="true"
+      class="w-full h-full"
+    ></iframe>
+  </div>
+
+  <!-- Toast (Notificación) - Diseño Modal -->
+  <div id="toast" class="toast">
+    <div class="rounded-lg bg-white p-6 shadow-xl border border-gray-200">
+      <div class="flex items-start">
+        <div id="toast-icon-container" class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full mr-4">
+          <div id="toast-icon" class="h-6 w-6"></div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 id="toast-title" class="text-lg font-semibold text-gray-900 mb-1"></h3>
+          <p id="toast-description" class="text-sm text-gray-600"></p>
+        </div>
+        <button id="toast-close" class="ml-4 flex-shrink-0 rounded-md p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors duration-200">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación de Finalización -->
+  <div id="confirmation-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 hidden">
+    <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+      <!-- Pantalla de Resumen (inicial) -->
+      <div id="modal-content-summary">
+        <div class="flex items-center">
+          <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-orange-100">
+            <svg class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-semibold text-gray-900">Confirmar Finalización</h3>
+          </div>
+        </div>
+        
+        <div class="mt-4">
+          <p class="text-base text-gray-600">
+            ¿Estás seguro de que deseas finalizar este mantenimiento?
+          </p>
+          <div class="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h4 class="text-sm font-medium text-gray-800 mb-2">Resumen de Actividades</h4>
+            <div class="text-sm text-gray-600 mb-3">
+              Tiempo Total: <span id="modal-timer-summary" class="font-medium">00:00:00</span>
+            </div>
+            <ul id="modal-sections-summary" class="space-y-2 text-sm">
+              <!-- Se llenará dinámicamente con JavaScript -->
+            </ul>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button id="modal-cancel-button" 
+                  class="flex h-11 w-full items-center justify-center rounded-md bg-gray-200 px-5 text-base font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-300 sm:w-auto">
+            No, volver
+          </button>
+          <button id="modal-confirm-button" 
+                  class="flex h-11 w-full items-center justify-center rounded-md bg-orange-600 px-5 text-base font-semibold text-white shadow-sm transition-all hover:bg-orange-700 sm:w-auto">
+            Sí, Finalizar
+          </button>
+        </div>
+      </div>
+
+      <!-- Pantalla de Carga -->
+      <div id="modal-content-loading" class="hidden flex flex-col items-center justify-center py-8 text-center">
+        <div class="relative mb-6 flex items-center justify-center">
+          <div class="h-16 w-16 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600 shadow-lg mx-auto"></div>
+          <div class="absolute inset-0 flex items-center justify-center"></div>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Guardando Mantenimiento</h3>
+        <p class="text-gray-600 mb-4">Procesando los datos del checklist...</p>
+        <div class="flex justify-center">
+          <div class="flex space-x-1">
+            <div class="h-2 w-2 bg-orange-600 rounded-full animate-bounce"></div>
+            <div class="h-2 w-2 bg-orange-600 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+            <div class="h-2 w-2 bg-orange-600 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pantalla de Éxito -->
+      <div id="modal-content-success" class="hidden flex flex-col items-center justify-center py-8 text-center">
+        <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 shadow-lg mx-auto">
+          <svg class="h-12 w-12 text-green-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">¡Mantenimiento Finalizado!</h3>
+        <p class="text-gray-600 mb-4">El mantenimiento se ha guardado correctamente.</p>
+        <div class="flex flex-col items-center gap-3">
+          <p class="text-sm text-gray-500">
+            <span id="countdown-text">Cerrando automáticamente en <span id="countdown">5</span> segundos</span>
+          </p>
+          <button id="close-success-modal" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 text-sm font-medium">
+            Cerrar Ahora
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cancel-confirmation-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 hidden">
+    <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+      
+      <div class="flex items-center">
+        <div class="mr-3 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-10 sm:w-10">
+          <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text_primary_color">Confirmar Cancelación</h3>
+      </div>
+      
+      <div class="mt-4">
+        <p class="text-base text-gray-600">
+          ¿Estás seguro de que deseas cancelar este mantenimiento?
+        </p>
+        <p class="mt-2 text-sm font-semibold text-red-700">
+          Esta acción no se puede deshacer y eliminará el registro de mantenimiento que ya fue iniciado.
+        </p>
+      </div>
+
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button id="modal-cancel-abort-button" 
+                class="flex h-11 w-full items-center justify-center rounded-md bg-gray-200 px-5 text-base font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-300 sm:w-auto">
+          No, volver
+        </button>
+        <button id="modal-cancel-confirm-button" 
+                class="flex h-11 w-full items-center justify-center rounded-md bg-red-600 px-5 text-base font-semibold text-white shadow-sm transition-all hover:bg-red-700 sm:w-auto">
+          Sí, Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
