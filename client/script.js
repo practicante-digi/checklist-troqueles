@@ -75,7 +75,7 @@ async function initApp() {
 
     // Revisar y restaurar estado guardado
     const savedState = localStorage.getItem('inProgressMaintenance');
-    
+
     if (savedState) {
         const restoredData = JSON.parse(savedState);
         Object.assign(state, restoredData);
@@ -100,7 +100,7 @@ async function initApp() {
         renderAccordions();
         restoreUIState();
         restoreTimer();
-        
+
         // Asegurar que el estado del botón sea correcto al restaurar
         updateSaveButtonStatus();
     }
@@ -143,7 +143,7 @@ let remainingTime = 5;
 function handleSaveButtonClick() {
     // Realizar validaciones ANTES de mostrar cualquier modal
     const validationResult = validateFormBeforeFinalize();
-    
+
     if (validationResult.isValid) {
         // Si la validación pasa, mostrar el modal de confirmación
         showConfirmationModal();
@@ -158,20 +158,20 @@ function validateFormBeforeFinalize() {
     // 1. Verificar que al menos una sección esté completa
     const sections = ['preventivo', 'correctivo', 'antesProduccion'];
     let hasCompleteSection = false;
-    
+
     for (const sectionKey of sections) {
         const tasks = state.tasks[sectionKey] || [];
-        const allTasksCompleted = tasks.length > 0 && tasks.every(task => 
-            task.status !== null && 
+        const allTasksCompleted = tasks.length > 0 && tasks.every(task =>
+            task.status !== null &&
             task.comment?.trim() !== ''
         );
-        
+
         if (allTasksCompleted) {
             hasCompleteSection = true;
             break;
         }
     }
-    
+
     if (!hasCompleteSection) {
         return {
             isValid: false,
@@ -180,13 +180,13 @@ function validateFormBeforeFinalize() {
             title: 'Formulario Incompleto'
         };
     }
-    
+
     // 2. Verificar tareas con estado pero sin comentario
     const allTasks = Object.values(state.tasks).flat();
-    const tasksSinComentario = allTasks.filter(task => 
+    const tasksSinComentario = allTasks.filter(task =>
         task.status !== null && (!task.comment || task.comment.trim() === "")
     );
-    
+
     if (tasksSinComentario.length > 0) {
         const firstProblemTask = tasksSinComentario[0];
         return {
@@ -197,21 +197,21 @@ function validateFormBeforeFinalize() {
             title: 'Comentario Requerido'
         };
     }
-    
+
     return { isValid: true };
 }
 
 // --- Función para manejar errores de validación ---
 function handleValidationError(validationResult) {
     const { type, task, message, title } = validationResult;
-    
+
     if (type === 'missing_comment' && task) {
         // Caso específico: tarea sin comentario
         const problemRow = document.querySelector(`.task-row[data-task-id="${task.id}"]`);
-        
+
         // Mostrar toast con información específica
         showToast(title, message, 'destructive');
-        
+
         if (problemRow) {
             // Abrir la sección si está cerrada
             const accordionContent = problemRow.closest('.accordion-content');
@@ -219,24 +219,24 @@ function handleValidationError(validationResult) {
                 const trigger = document.querySelector(`[data-target="#${accordionContent.id}"]`);
                 trigger?.click();
             }
-            
+
             // Hacer scroll a la tarea problemática
             setTimeout(() => {
                 problemRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
+
                 // Mostrar y enfocar el textarea correspondiente
                 const problemTextarea = problemRow.querySelector(`.task-comment-${task.status}`);
                 const commentContainer = problemRow.querySelector('.task-comment-container');
-                
+
                 if (problemTextarea && commentContainer) {
                     commentContainer.classList.add('visible');
                     problemTextarea.classList.add('visible');
                     problemTextarea.style.display = 'block';
-                    
+
                     setTimeout(() => {
                         problemTextarea.focus();
                         problemTextarea.classList.add('task-comment-required');
-                        
+
                         // Quitar el estilo de requerido cuando el usuario empiece a escribir
                         const removeRequiredStyle = () => {
                             problemTextarea.classList.remove('task-comment-required');
@@ -247,16 +247,16 @@ function handleValidationError(validationResult) {
                 }
             }, 100);
         }
-        
+
     } else if (type === 'no_complete_section') {
         // Caso: no hay ninguna sección completa
         showToast(title, message, 'destructive');
-        
+
         // Mostrar información más detallada sobre qué falta
         setTimeout(() => {
             showSectionCompletionGuide();
         }, 2000);
-        
+
     } else {
         // Caso genérico
         showToast(title || 'Error de Validación', message, 'destructive');
@@ -270,25 +270,25 @@ function showSectionCompletionGuide() {
         { title: 'Mantenimiento Correctivo', key: 'correctivo' },
         { title: 'Previo de Producción', key: 'antesProduccion' }
     ];
-    
+
     let guideMessage = 'Para finalizar el mantenimiento, debes completar al menos una sección entera:\n\n';
-    
+
     sections.forEach(section => {
         const tasks = state.tasks[section.key] || [];
-        const completedTasks = tasks.filter(task => 
+        const completedTasks = tasks.filter(task =>
             task.status !== null && task.comment?.trim() !== ''
         );
         const totalTasks = tasks.length;
-        
-        const status = completedTasks.length === totalTasks && totalTasks > 0 ? 
-            'Completa' : 
+
+        const status = completedTasks.length === totalTasks && totalTasks > 0 ?
+            'Completa' :
             `Incompleta (${completedTasks.length}/${totalTasks})`;
-            
+
         guideMessage += `• ${section.title}: ${status}\n`;
     });
-    
+
     guideMessage += '\nCada actividad necesita:\n1. Seleccionar "Realizado" o "No Realizado"\n2. Agregar un comentario explicativo';
-    
+
     // Mostrar segundo toast con guía
     setTimeout(() => {
         showToast('Guía de Completitud', guideMessage, 'info');
@@ -301,16 +301,16 @@ async function handleModalConfirmation() {
         setTimeout(() => {
             showLoadingScreen();
         }, 300);
-        
+
         const [success] = await Promise.all([
             executeFinalization(),
             new Promise(resolve => setTimeout(resolve, 2000))
         ]);
-        
+
         if (success) {
             setTimeout(() => {
                 showSuccessScreen();
-                
+
                 // Iniciar contador regresivo
                 startSuccessCountdown();
             }, 500);
@@ -332,11 +332,11 @@ function startSuccessCountdown() {
     remainingTime = 5;
     const countdownElement = $('#countdown');
     const closeButton = $('#close-success-modal');
-    
+
     if (countdownElement) {
         countdownElement.textContent = remainingTime;
     }
-    
+
     // Configurar el botón de cerrar manualmente
     if (closeButton) {
         closeButton.addEventListener('click', () => {
@@ -344,15 +344,15 @@ function startSuccessCountdown() {
             hideConfirmationModal();
         });
     }
-    
+
     // Iniciar el contador
     countdownInterval = setInterval(() => {
         remainingTime--;
-        
+
         if (countdownElement) {
             countdownElement.textContent = remainingTime;
         }
-        
+
         if (remainingTime <= 0) {
             clearCountdown();
             hideConfirmationModal();
@@ -418,24 +418,24 @@ function setupEventListeners() {
         cancelButton.addEventListener('click', () => {
             cancelConfirmationModal.classList.remove('hidden');
         });
-   
 
-    // --- AÑADE LOS LISTENERS PARA EL NUEVO MODAL DE CANCELACIÓN ---
-    modalCancelAbortButton.addEventListener('click', () => {
-        cancelConfirmationModal.classList.add('hidden');
-    });
 
-    modalCancelConfirmButton.addEventListener('click', async () => {
-        await executeCancellation();
-        cancelConfirmationModal.classList.add('hidden');
-    });
-
-    cancelConfirmationModal.addEventListener('click', (e) => {
-        if (e.target === cancelConfirmationModal) {
+        // --- AÑADE LOS LISTENERS PARA EL NUEVO MODAL DE CANCELACIÓN ---
+        modalCancelAbortButton.addEventListener('click', () => {
             cancelConfirmationModal.classList.add('hidden');
-        }
         });
-    
+
+        modalCancelConfirmButton.addEventListener('click', async () => {
+            await executeCancellation();
+            cancelConfirmationModal.classList.add('hidden');
+        });
+
+        cancelConfirmationModal.addEventListener('click', (e) => {
+            if (e.target === cancelConfirmationModal) {
+                cancelConfirmationModal.classList.add('hidden');
+            }
+        });
+
         // Guarda el estado si el usuario refresca o cierra la pestaña
         window.addEventListener('beforeunload', () => {
             try {
@@ -446,23 +446,23 @@ function setupEventListeners() {
                 // silencioso
             }
         });
-    
+
         // --- Eventos para el modal de confirmación ---
         const modalCancelButton = $('#modal-cancel-button');
         const modalConfirmButton = $('#modal-confirm-button');
-    
+
         modalCancelButton.addEventListener('click', () => {
             hideConfirmationModal();
         });
-    
+
         modalConfirmButton.addEventListener('click', handleModalConfirmation);
-    
+
         confirmationModal.addEventListener('click', (e) => {
             if (e.target === confirmationModal) {
                 hideConfirmationModal();
             }
         });
-    
+
         // --- Eventos para las pestañas ---
         setupTabEvents();
     }
@@ -476,7 +476,7 @@ async function fetchTroqueles() {
     try {
         const response = await fetch('/api/troqueles');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
+
         const troqueles = await response.json();
         renderSelect(troquelesSelect, troqueles, 'Seleccionar troquel...', 'idTroquel', 'Codigo');
     } catch (error) {
@@ -488,7 +488,7 @@ async function fetchTecnicos() {
     try {
         const response = await fetch('/api/users');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
+
         const tecnicos = await response.json();
         renderSelect(techSelect, tecnicos, 'Seleccionar técnico...', 'idUsuario', 'Nombre');
     } catch (error) {
@@ -500,7 +500,7 @@ async function fetchTasks() {
     try {
         const response = await fetch('/api/actividades');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
+
         const tasksData = await response.json();
         state.tasks = tasksData;
         renderAccordions();
@@ -531,7 +531,7 @@ function renderAccordions() {
     ];
 
     // Renderizar acordeones
-    accordionContainer.innerHTML = sections.map(section => 
+    accordionContainer.innerHTML = sections.map(section =>
         createTaskSectionHtml(section.title, section.key)
     ).join('');
 
@@ -539,7 +539,7 @@ function renderAccordions() {
     sections.forEach(section => {
         const tasks = state.tasks[section.key] || [];
         const taskListElement = $(`[data-task-list-for="${section.key}"]`);
-        
+
         if (!taskListElement) return;
 
         if (tasks.length > 0) {
@@ -551,7 +551,7 @@ function renderAccordions() {
         } else {
             taskListElement.innerHTML = '<p class="text-sm text-gray-500 p-4">No hay actividades para esta sección.</p>';
         }
-        
+
         checkSectionCompletion(section.key);
     });
 }
@@ -573,7 +573,7 @@ function createTaskSectionHtml(title, sectionKey) {
 
 function createTaskRowHtml(task, sectionKey) {
     const taskRowTemplate = document.querySelector('#task-row-template');
-    
+
     if (!taskRowTemplate) {
         return document.createTextNode('Error: Template no encontrado.');
     }
@@ -603,7 +603,7 @@ function createTaskRowHtml(task, sectionKey) {
     // Configurar botón de ver comentario
     viewCommentBtn.dataset.section = sectionKey;
     viewCommentBtn.dataset.taskId = task.id;
-    
+
     // Configurar textareas
     [textareaRealizado, textareaNoRealizado].forEach(textarea => {
         textarea.dataset.section = sectionKey;
@@ -616,7 +616,7 @@ function createTaskRowHtml(task, sectionKey) {
         e.stopPropagation();
         const container = e.target.closest('.task-row').querySelector('.task-comment-container');
         const textarea = e.target.closest('.task-row').querySelector(`.task-comment-${task.status}`);
-        
+
         if (container) {
             container.classList.toggle('visible');
             if (container.classList.contains('visible') && textarea) {
@@ -637,23 +637,23 @@ function createTaskRowHtml(task, sectionKey) {
             const otherStatus = status === 'Completado' ? 'No Completado' : 'Completado';
             const textarea = clone.querySelector(`.task-comment-${status}`);
             const otherTextarea = clone.querySelector(`.task-comment-${otherStatus}`);
-            
+
             if (textarea) {
                 textarea.style.display = 'block';
                 textarea.classList.add('visible');
                 commentContainer.classList.add('visible');
-                
+
                 // Enfocar el textarea después de la animación
                 setTimeout(() => {
                     textarea.focus();
                 }, 100);
             }
-            
+
             if (otherTextarea) {
                 otherTextarea.style.display = 'none';
                 otherTextarea.classList.remove('visible');
             }
-            
+
             // Mostrar el botón de ver comentario
             viewCommentBtn.classList.remove('hidden');
         });
@@ -726,29 +726,29 @@ function handleStatusClick(button) {
     } else {
         // Si se selecciona, actualizar estilos
         button.classList.add('bg-orange-600', 'text-white', 'border-orange-600');
-        
+
         // Mostrar el botón de ver comentario
         if (viewCommentBtn) {
             viewCommentBtn.classList.remove('hidden');
         }
-        
+
         // Asegurarse de que el contenedor sea visible
         if (commentContainer) {
             commentContainer.style.display = 'block';
             commentContainer.classList.add('visible');
         }
-        
+
         // Ocultar el otro textarea si existe
         if (otherTextarea) {
             otherTextarea.classList.remove('visible');
             otherTextarea.style.display = 'none';
         }
-        
+
         // Mostrar el textarea correspondiente
         if (textarea) {
             textarea.style.display = 'block';
             textarea.classList.add('visible');
-            
+
             // Restaurar comentario si existe
             if (task.comment && previousStatus === newStatus) {
                 textarea.value = task.comment;
@@ -756,7 +756,7 @@ function handleStatusClick(button) {
                 textarea.value = "";
                 task.comment = "";
             }
-            
+
             // Enfocar el textarea
             setTimeout(() => {
                 textarea.focus();
@@ -768,7 +768,7 @@ function handleStatusClick(button) {
                     rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
                     rect.right <= (window.innerWidth || document.documentElement.clientWidth)
                 );
-                
+
                 if (!isVisible) {
                     textarea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
@@ -788,19 +788,19 @@ function handleStatusClick(button) {
 // Verifica si todas las tareas de una sección tienen estado asignado
 function checkSectionCompletion(sectionKey) {
     const tasks = state.tasks[sectionKey];
-    
+
     if (!tasks || tasks.length === 0) {
         return;
     }
 
     // Una sección está completa solo si TODAS sus tareas tienen estado Y comentario
-    const allTasksCompleted = tasks.length > 0 && tasks.every(task => 
-        task.status !== null && 
+    const allTasksCompleted = tasks.length > 0 && tasks.every(task =>
+        task.status !== null &&
         task.comment?.trim() !== ''
     );
 
     const accordionButton = document.querySelector(`[data-target="#accordion-content-${sectionKey}"]`);
-    
+
     if (!accordionButton) {
         return;
     }
@@ -821,7 +821,7 @@ function updateSaveButtonStatus() {
     // Verificar si hay al menos una sección completamente terminada
     const anySectionComplete = document.querySelector('.accordion-trigger.section-complete');
     saveButton.disabled = !anySectionComplete;
-    
+
     // Actualizar visualmente el botón
     if (anySectionComplete) {
         saveButton.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -891,8 +891,8 @@ function checkHeaderFields() {
                 <span>Completa <strong> Troquel </strong> para continuar.</span>
             </span>
         `);
-        } 
-    } 
+        }
+    }
     else {
         // Ninguno completo: ocultar toda la sección
         startSection.classList.add('hidden');
@@ -929,7 +929,7 @@ async function handleStartMaintenance() {
         }
 
         const result = await response.json();
-        
+
         // Guardar el ID del mantenimiento en el estado
         state.currentMaintenanceId = result.idMantenimiento;
 
@@ -939,10 +939,10 @@ async function handleStartMaintenance() {
         // Mostrar el checklist y el botón finalizar
         accordionContainer.classList.remove('hidden');
         saveButtonContainer.classList.remove('hidden');
-        
+
         // Ocultar la sección de inicio
         startSection.classList.add('hidden');
-        
+
         // Deshabilitar los selectores para que no se puedan cambiar
         choicesTroqueles.disable();
         choicesTecnicos.disable();
@@ -960,7 +960,7 @@ async function handleStartMaintenance() {
         }
     } catch (error) {
         showToast('Error', error.message, 'destructive');
-        
+
         // Restaurar botón
         startButton.disabled = false;
         startButton.innerHTML = `
@@ -990,7 +990,7 @@ function showToast(title, description, variant = 'info') {
 
     // Limpiar clases previas del contenedor de icono
     toastIconContainer.className = 'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full mr-4';
-    
+
     // Iconos y estilos según variante
     const iconConfig = {
         success: {
@@ -1010,22 +1010,22 @@ function showToast(title, description, variant = 'info') {
             containerClass: 'toast-icon-info'
         }
     };
-    
+
     const config = iconConfig[variant] || iconConfig.info;
-    
+
     // Aplicar icono y estilo
     toastIcon.innerHTML = config.icon;
     toastIconContainer.classList.add(config.containerClass, 'toast-icon-animate');
-    
+
     // Animar contenido
     const content = toast.querySelector('.flex-1');
     if (content) {
         content.classList.add('toast-content-animate');
     }
-    
+
     // Mostrar toast
     toast.classList.add('show');
-    
+
     // Auto-ocultar después de 5 segundos
     setTimeout(() => {
         hideToast();
@@ -1036,10 +1036,10 @@ function showToast(title, description, variant = 'info') {
 function hideToast() {
     const toast = $('#toast');
     const toastIconContainer = $('#toast-icon-container');
-    
+
     // Ocultar inmediatamente
     toast.classList.remove('show');
-    
+
     // Limpiar clases de animación después de ocultar
     setTimeout(() => {
         toastIconContainer.classList.remove('toast-icon-animate');
@@ -1068,7 +1068,7 @@ async function resetForm() {
     state.selectedTroquel = "";
     state.selectedTecnico = "";
     state.currentMaintenanceId = null;
-    
+
     // Resetea los <select> ocultos
     troquelesSelect.value = "";
     techSelect.value = "";
@@ -1174,7 +1174,7 @@ function restoreUIState() {
                     textareaNoRealizado.value = (task.status === 'No Completado') ? (task.comment || "") : "";
                 }
             }
-            
+
             checkSectionCompletion(sectionKey);
         });
         updateSaveButtonStatus();
@@ -1308,11 +1308,11 @@ function showConfirmationModal() {
 
     // Mostrar el modal con animación suave
     confirmationModal.classList.remove('hidden');
-    
+
     // Aplicar animación de entrada
     confirmationModal.style.opacity = '0';
     confirmationModal.style.visibility = 'visible';
-    
+
     // Forzar reflow y animar
     confirmationModal.offsetHeight;
     confirmationModal.style.transition = 'opacity 0.4s ease-out';
@@ -1323,12 +1323,12 @@ function showConfirmationModal() {
 function hideConfirmationModal() {
     // Limpiar cualquier contador activo
     clearCountdown();
-    
+
     // Animar salida del modal
     confirmationModal.style.transition = 'all 0.4s ease-out';
     confirmationModal.style.opacity = '0';
     confirmationModal.style.visibility = 'hidden';
-    
+
     // Después de la animación, resetear el estado
     setTimeout(() => {
         // Reset modal to initial state
@@ -1336,24 +1336,24 @@ function hideConfirmationModal() {
         modalContentLoading.classList.add('hidden');
         modalContentSuccess.classList.add('hidden');
         confirmationModal.classList.add('hidden');
-        
+
         // Resetear estilos inline que pudieron haber sido aplicados
         modalContentSummary.style.opacity = '';
         modalContentSummary.style.transform = '';
         modalContentSummary.style.transition = '';
-        
+
         modalContentLoading.style.opacity = '';
         modalContentLoading.style.transform = '';
         modalContentLoading.style.transition = '';
-        
+
         modalContentSuccess.style.opacity = '';
         modalContentSuccess.style.transform = '';
         modalContentSuccess.style.transition = '';
-        
+
         confirmationModal.style.opacity = '';
         confirmationModal.style.visibility = '';
         confirmationModal.style.transition = '';
-        
+
         // Resetear el contador
         const countdownElement = $('#countdown');
         if (countdownElement) {
@@ -1368,16 +1368,16 @@ function showLoadingScreen() {
     modalContentSummary.style.transition = 'all 0.4s ease-out';
     modalContentSummary.style.opacity = '0';
     modalContentSummary.style.transform = 'translateY(-20px)';
-    
+
     setTimeout(() => {
         modalContentSummary.classList.add('hidden');
         modalContentLoading.classList.remove('hidden');
         modalContentSuccess.classList.add('hidden');
-        
+
         // Animar entrada de la pantalla de carga
         modalContentLoading.style.opacity = '0';
         modalContentLoading.style.transform = 'translateY(20px)';
-        
+
         // Forzar reflow y animar
         modalContentLoading.offsetHeight;
         modalContentLoading.style.transition = 'all 0.4s ease-out';
@@ -1392,15 +1392,15 @@ function showSuccessScreen() {
     modalContentLoading.style.transition = 'all 0.4s ease-out';
     modalContentLoading.style.opacity = '0';
     modalContentLoading.style.transform = 'translateY(-20px)';
-    
+
     setTimeout(() => {
         modalContentLoading.classList.add('hidden');
         modalContentSuccess.classList.remove('hidden');
-        
+
         // Animar entrada de la pantalla de éxito
         modalContentSuccess.style.opacity = '0';
         modalContentSuccess.style.transform = 'translateY(20px) scale(0.95)';
-        
+
         // Forzar reflow y animar
         modalContentSuccess.offsetHeight;
         modalContentSuccess.style.transition = 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
@@ -1434,12 +1434,12 @@ async function executeFinalization() {
         }
 
         const result = await response.json();
-        await resetForm(); 
-        return true; 
+        await resetForm();
+        return true;
 
     } catch (error) {
         showToast('Error', 'No se pudo finalizar el mantenimiento. Intenta nuevamente.', 'error');
-        return false; 
+        return false;
     }
 }
 
@@ -1466,7 +1466,7 @@ async function executeCancellation() {
 
         // Restablecer el estado y la interfaz de usuario
         state.currentMaintenanceId = null;
-        await resetForm(); 
+        await resetForm();
         localStorage.removeItem('inProgressMaintenance');
 
         // Restablecer el botón de iniciar mantenimiento
@@ -1487,14 +1487,41 @@ async function executeCancellation() {
 
 // --- FUNCIONES PARA EL MANEJO DE PESTAÑAS ---
 
+/**
+ * Detecta si el dispositivo es móvil o tablet
+ * @returns {boolean} true si es móvil/tablet, false si es desktop
+ */
+function isMobileOrTablet() {
+    // Check 1: User Agent - detecta palabras clave de dispositivos móviles
+    const userAgent = navigator.userAgent.toLowerCase();
+    const mobileKeywords = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/;
+    const hasMobileUA = mobileKeywords.test(userAgent);
+
+    // Check 2: Ancho de pantalla - tablets típicamente <= 1280px
+    const screenWidth = window.innerWidth;
+    const isSmallScreen = screenWidth <= 1280;
+
+    // Check 3: Capacidad táctil
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+    // Retorna true si cumple con criterios de móvil/tablet
+    return hasMobileUA || (isSmallScreen && isTouchDevice);
+}
+
+// URLs de Power BI según tipo de dispositivo
+const POWERBI_URLS = {
+    desktop: "https://app.powerbi.com/view?r=eyJrIjoiODY0OTQxNTItYzZjMS00ZDRkLWExYzgtMmE4ZjIzNzhlN2Y5IiwidCI6IjY0NWE3NDU1LTkzMGItNDk3Ni1iOTFiLTYzOTAxOGEwZGY5OCJ9",
+    mobile: "https://app.powerbi.com/view?r=eyJrIjoiZjIxMGNjMGUtZTU4Ny00ZWQxLWIwMGQtZmQzYmQ3ZDU2MGYzIiwidCI6IjY0NWE3NDU1LTkzMGItNDk3Ni1iOTFiLTYzOTAxOGEwZGY5OCJ9"
+};
+
 function setupTabEvents() {
     const tabFormulario = $('#tab-formulario');
     const tabInforme = $('#tab-informe');
-    
+
     if (tabFormulario) {
         tabFormulario.addEventListener('click', () => switchTab('formulario'));
     }
-    
+
     if (tabInforme) {
         tabInforme.addEventListener('click', () => switchTab('informe'));
     }
@@ -1506,17 +1533,17 @@ function switchTab(activeTab) {
     const tabInforme = $('#tab-informe');
     const contentFormulario = $('#tab-content-formulario');
     const contentInforme = $('#tab-content-informe');
-    
+
     // Remover clase activa de todas las pestañas
     [tabFormulario, tabInforme].forEach(tab => {
         if (tab) tab.classList.remove('active');
     });
-    
+
     // Ocultar todo el contenido
     [contentFormulario, contentInforme].forEach(content => {
         if (content) content.classList.add('hidden');
     });
-    
+
     // Activar la pestaña seleccionada
     if (activeTab === 'formulario') {
         if (tabFormulario) tabFormulario.classList.add('active');
@@ -1524,7 +1551,7 @@ function switchTab(activeTab) {
     } else if (activeTab === 'informe') {
         if (tabInforme) tabInforme.classList.add('active');
         if (contentInforme) contentInforme.classList.remove('hidden');
-        
+
         // Opcional: Recargar el iframe de Power BI para asegurar que se cargue correctamente
         refreshPowerBI();
     }
@@ -1533,11 +1560,17 @@ function switchTab(activeTab) {
 function refreshPowerBI() {
     const iframe = $('#power-bi-iframe');
     if (iframe) {
+        // Detectar tipo de dispositivo y seleccionar URL apropiada
+        const isMobile = isMobileOrTablet();
+        const powerBIUrl = isMobile ? POWERBI_URLS.mobile : POWERBI_URLS.desktop;
+
+        console.log('🔍 Dispositivo detectado:', isMobile ? 'Móvil/Tablet' : 'Desktop');
+        console.log('📊 Cargando reporte:', isMobile ? 'Mobile' : 'Desktop');
+        console.log('🔗 URL:', powerBIUrl);
+
         // Pequeño delay para permitir que la animación de mostrar termine
         setTimeout(() => {
-            const src = iframe.src;
-            iframe.src = '';
-            iframe.src = src;
+            iframe.src = powerBIUrl;
         }, 100);
     }
 }

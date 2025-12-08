@@ -6,16 +6,20 @@
 }
 
 .accordion-content.open {
-    max-height: 70vh; /* Máximo 70% de la altura de la pantalla para desktop y móvil */
-    overflow-y: auto; /* Permitir scroll vertical siempre que sea necesario */
-    overflow-x: hidden; /* Ocultar scroll horizontal */
+    max-height: 70vh;
+    /* Máximo 70% de la altura de la pantalla para desktop y móvil */
+    overflow-y: auto;
+    /* Permitir scroll vertical siempre que sea necesario */
+    overflow-x: hidden;
+    /* Ocultar scroll horizontal */
     padding-bottom: 0.5rem;
-    padding-right: 0.5rem; /* Espacio para la barra de scroll */
-    
+    padding-right: 0.5rem;
+    /* Espacio para la barra de scroll */
+
     /* Scroll suave para todos los dispositivos */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    
+
     /* Sombra interna sutil para indicar contenido scrolleable */
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
 }
@@ -84,18 +88,19 @@
 /* Estilos específicos para móviles - Ajustes adicionales */
 @media (max-width: 768px) {
     .accordion-content.open {
-        max-height: 60vh; /* Menor altura en móviles para dejar más espacio */
+        max-height: 60vh;
+        /* Menor altura en móviles para dejar más espacio */
     }
-    
+
     /* Barra de scroll más delgada en móviles */
     .accordion-content::-webkit-scrollbar {
         width: 6px;
     }
-    
+
     .accordion-content::-webkit-scrollbar-track {
         border-radius: 3px;
     }
-    
+
     .accordion-content::-webkit-scrollbar-thumb {
         border-radius: 3px;
     }
@@ -192,143 +197,150 @@
 
 /* Estilos para transiciones del modal */
 #confirmation-modal {
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(8px);
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
 }
 
 #confirmation-modal.hidden {
-  opacity: 0;
-  visibility: hidden;
+    opacity: 0;
+    visibility: hidden;
 }
 
 #confirmation-modal:not(.hidden) {
-  opacity: 1;
-  visibility: visible;
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Asegurar que el contenido del modal tenga una transición suave */
-#confirmation-modal > div {
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-              opacity 0.4s ease-out;
-  transform-origin: center center;
+#confirmation-modal>div {
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        opacity 0.4s ease-out;
+    transform-origin: center center;
 }
 
-#confirmation-modal.hidden > div {
-  transform: translateY(-30px) scale(0.95);
-  opacity: 0;
+#confirmation-modal.hidden>div {
+    transform: translateY(-30px) scale(0.95);
+    opacity: 0;
 }
 
-#confirmation-modal:not(.hidden) > div {
-  transform: translateY(0) scale(1);
-  opacity: 1;
+#confirmation-modal:not(.hidden)>div {
+    transform: translateY(0) scale(1);
+    opacity: 1;
 }
 
 /* Transiciones suaves para cambio de contenido del modal */
 #modal-content-summary,
 #modal-content-loading,
 #modal-content-success {
-  transition: all 0.4s ease-in-out;
-  opacity: 1;
-  transform: translateY(0);
+    transition: all 0.4s ease-in-out;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 #modal-content-summary.hidden,
 #modal-content-loading.hidden,
 #modal-content-success.hidden {
-  opacity: 0;
-  transform: translateY(20px);
+    opacity: 0;
+    transform: translateY(20px);
 }
 
 /* Animación para el spinner de carga */
 #modal-content-loading .animate-spin {
-  animation: spin 1.5s linear infinite;
+    animation: spin 1.5s linear infinite;
 }
 
 /* Animación para los puntos de carga */
 @keyframes pulse {
-  0%, 100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
 }
 
 #modal-content-loading .animate-pulse {
-  animation: pulse 1.5s ease-in-out infinite;
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
 /* Estilos para el contador regresivo */
 #countdown-timer {
-  font-weight: 600;
-  color: #f97316; /* orange-500 */
-  font-size: 1rem;
-  display: inline-block;
-  min-width: 20px;
-  text-align: center;
+    font-weight: 600;
+    color: #f97316;
+    /* orange-500 */
+    font-size: 1rem;
+    display: inline-block;
+    min-width: 20px;
+    text-align: center;
 }
 
 /* Estilos para el botón de cerrar en la pantalla de éxito */
 #modal-success-close-button {
-  transition: all 0.2s ease-out;
-  border: 1px solid #e5e7eb;
+    transition: all 0.2s ease-out;
+    border: 1px solid #e5e7eb;
 }
 
 #modal-success-close-button:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 #modal-success-close-button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Animación especial para el ícono de éxito */
 #modal-content-success svg {
-  animation: successPulse 0.8s ease-out;
+    animation: successPulse 0.8s ease-out;
 }
 
 @keyframes successPulse {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* Animación para el contenido de éxito */
 #modal-content-success h3,
 #modal-content-success p {
-  animation: fadeInUp 0.6s ease-out;
-  animation-fill-mode: both;
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
 }
 
 #modal-content-success p {
-  animation-delay: 0.2s;
+    animation-delay: 0.2s;
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Estilos para móvil */
@@ -445,22 +457,22 @@
     .task-row {
         padding: 0.5rem 0;
     }
-    
-    .task-row > div {
+
+    .task-row>div {
         width: 100%;
     }
-    
+
     /* Contenedor principal de botones en móvil */
     .task-buttons-container {
         flex-direction: column;
         width: 100%;
     }
-    
+
     /* Fila de botones Realizado/No Realizado en móvil */
     .task-buttons-row {
         width: 100%;
     }
-    
+
     .task-button {
         padding: 0.5rem;
         font-size: 0.75rem;
@@ -475,13 +487,13 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    
+
     .task-button svg {
         margin-right: 0.25rem;
         width: 1rem;
         height: 1rem;
     }
-    
+
     /* Botón de Ver Comentario */
     .view-comment-btn {
         margin-top: 0.5rem;
@@ -497,15 +509,16 @@
 
 /* Ajuste para mostrar la hora debajo de la fecha en dispositivos móviles */
 @media (max-width: 768px) {
-  #header-date {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+    #header-date {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-  #header-date span {
-    margin-left: 0; /* Eliminar margen izquierdo en móvil */
-  }
+    #header-date span {
+        margin-left: 0;
+        /* Eliminar margen izquierdo en móvil */
+    }
 }
 
 .accordion-trigger.open .accordion-chevron {
@@ -519,6 +532,7 @@
 .text_primary_color {
     color: #373a36;
 }
+
 .text_secondary_color {
     color: #c7c8c7;
 
@@ -536,7 +550,7 @@
     right: 1.25rem;
     z-index: 30;
     max-width: 28rem;
-    
+
     /* Oculto por defecto */
     opacity: 0;
     transform: translateY(30px) scale(0.95);
@@ -548,16 +562,17 @@
     /* Visible con animación elegante */
     opacity: 1;
     transform: translateY(0) scale(1);
-    pointer-events: none; /* El contenedor no bloquea interacciones */
+    pointer-events: none;
+    /* El contenedor no bloquea interacciones */
 }
 
 /* El contenido del toast sí debe ser interactivo */
-.toast.show > div {
+.toast.show>div {
     pointer-events: auto;
 }
 
 /* Contenedor del toast con sombra modal */
-.toast > div {
+.toast>div {
     backdrop-filter: blur(8px);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -565,22 +580,26 @@
 
 /* Estilos para los iconos según el tipo */
 .toast-icon-success {
-    background-color: #10B981; /* green-500 */
+    background-color: #10B981;
+    /* green-500 */
     color: white;
 }
 
 .toast-icon-error {
-    background-color: #EF4444; /* red-500 */
+    background-color: #EF4444;
+    /* red-500 */
     color: white;
 }
 
 .toast-icon-destructive {
-    background-color: #EF4444; /* red-500 */
+    background-color: #EF4444;
+    /* red-500 */
     color: white;
 }
 
 .toast-icon-info {
-    background-color: #3B82F6; /* blue-500 */
+    background-color: #3B82F6;
+    /* blue-500 */
     color: white;
 }
 
@@ -594,10 +613,12 @@
         transform: scale(0);
         opacity: 0;
     }
+
     50% {
         transform: scale(1.1);
         opacity: 1;
     }
+
     100% {
         transform: scale(1);
         opacity: 1;
@@ -614,6 +635,7 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -623,7 +645,8 @@
 /* Ajustes responsivos para el toast en teléfonos y tablets */
 @media (max-width: 768px) {
     .toast {
-        top: 1.5rem; /* Muy cerca del header */
+        top: 1.5rem;
+        /* Muy cerca del header */
         bottom: auto;
         left: 50%;
         right: auto;
@@ -631,32 +654,32 @@
         max-width: calc(100% - 2rem);
         width: 90%;
     }
-    
+
     .toast.show {
         transform: translateX(-50%) translateY(0) scale(1);
     }
-    
+
     /* Ajustar el layout en móvil para ser más compacto */
     .toast .flex {
         align-items: flex-start;
     }
-    
+
     .toast #toast-icon-container {
         margin-right: 0.75rem;
         width: 2.5rem;
         height: 2.5rem;
     }
-    
+
     .toast #toast-icon {
         width: 1.25rem;
         height: 1.25rem;
     }
-    
+
     .toast #toast-title {
         font-size: 1rem;
         margin-bottom: 0.25rem;
     }
-    
+
     .toast #toast-description {
         font-size: 0.875rem;
         line-height: 1.4;
@@ -670,67 +693,92 @@
 
 /* Sutil animación para mensajes inline (feedback minimalista) */
 .fade-in {
-  animation: fadeIn 200ms ease-out;
+    animation: fadeIn 200ms ease-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(2px); }
-  to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Estilos para secciones completadas del acordeón */
 
 /* Opción 1: Minimalista con Check Verde (Recomendada) */
 .accordion-trigger.section-complete {
-  color: #15803d; /* Verde oscuro */
-  background-color: #f0fdf4; /* Fondo verde muy claro */
-  border-left: 4px solid #22c55e; /* Borde verde */
-  padding-left: calc(1rem - 4px); /* Ajusta padding por el borde */
-  transition: all 300ms ease-out;
+    color: #15803d;
+    /* Verde oscuro */
+    background-color: #f0fdf4;
+    /* Fondo verde muy claro */
+    border-left: 4px solid #22c55e;
+    /* Borde verde */
+    padding-left: calc(1rem - 4px);
+    /* Ajusta padding por el borde */
+    transition: all 300ms ease-out;
 }
 
 .accordion-trigger.section-complete::before {
-  content: "✓";
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin-right: 8px;
-  background-color: #22c55e; /* Verde brillante */
-  color: white;
-  border-radius: 50%;
-  font-weight: bold;
-  font-size: 0.9em;
-  animation: checkAppear 300ms ease-out;
+    content: "✓";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    background-color: #22c55e;
+    /* Verde brillante */
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 0.9em;
+    animation: checkAppear 300ms ease-out;
 }
 
 /* Corrección de la animación checkAppear */
 @keyframes checkAppear {
-  from { opacity: 0; transform: scale(0.5); }
-  to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .task-comment-required {
-    border-color: #EF4444 !important; /* red-500 */
+    border-color: #EF4444 !important;
+    /* red-500 */
 }
 
 .task-comment-required::placeholder {
-    color: #B91C1C; /* red-700 */
+    color: #B91C1C;
+    /* red-700 */
     opacity: 1;
     font-weight: 500;
 }
 
 .task-comment-required:focus {
-    border-color: #DC2626 !important; /* red-600 */
+    border-color: #DC2626 !important;
+    /* red-600 */
 }
 
 /* Animación para campo requerido */
 @keyframes requiredPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         border-color: #EF4444;
         background-color: #FEF2F2;
     }
+
     50% {
         border-color: #DC2626;
         background-color: #FECACA;
@@ -746,7 +794,8 @@
 }
 
 #save-button:disabled:hover {
-    background-color: #ff5c35 !important; /* Mantener el color original */
+    background-color: #ff5c35 !important;
+    /* Mantener el color original */
     transform: none !important;
 }
 
@@ -764,10 +813,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 3rem; /* Tamaño del círculo */
-    width: 3rem;  /* Tamaño del círculo */
-    border-radius: 50%; /* Asegura que sea un círculo */
-    background-color: #10B981; /* Verde consistente */
+    height: 3rem;
+    /* Tamaño del círculo */
+    width: 3rem;
+    /* Tamaño del círculo */
+    border-radius: 50%;
+    /* Asegura que sea un círculo */
+    background-color: #10B981;
+    /* Verde consistente */
 }
 
 /* Estilo del ícono dentro del círculo */
@@ -775,24 +828,32 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 1.5rem; /* Tamaño del ícono */
-    width: 1.5rem;  /* Tamaño del ícono */
-    color: white; /* Ícono blanco para contraste */
+    height: 1.5rem;
+    /* Tamaño del ícono */
+    width: 1.5rem;
+    /* Tamaño del ícono */
+    color: white;
+    /* Ícono blanco para contraste */
 }
 
 /* Ajustes responsivos para el toast */
 @media (max-width: 768px) {
     #toast-icon-container {
-        height: 2.5rem; /* Tamaño más pequeño en móvil */
-        width: 2.5rem;  /* Tamaño más pequeño en móvil */
-        background-color: #10B981; /* Verde consistente */
+        height: 2.5rem;
+        /* Tamaño más pequeño en móvil */
+        width: 2.5rem;
+        /* Tamaño más pequeño en móvil */
+        background-color: #10B981;
+        /* Verde consistente */
     }
 
     #toast-icon {
-        height: 1.25rem; /* Ícono más pequeño en móvil */
-        width: 1.25rem;  /* Ícono más pequeño en móvil */
+        height: 1.25rem;
+        /* Ícono más pequeño en móvil */
+        width: 1.25rem;
+        /* Ícono más pequeño en móvil */
     }
-    
+
     /* Ajustes adicionales específicos para móviles */
 }
 
@@ -832,7 +893,8 @@
 /* Header siempre visible por encima del contenido */
 header {
     position: relative;
-    z-index: 20; /* Mayor que fullscreen-powerbi (z-index: 10) */
+    z-index: 20;
+    /* Mayor que fullscreen-powerbi (z-index: 10) */
     background-color: white;
 }
 
@@ -850,6 +912,7 @@ header {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -865,7 +928,16 @@ header {
     bottom: 0;
     z-index: 10;
     background-color: white;
-    padding-top: 114px; /* Espacio para el header */
+    margin: 0;
+    /* Sin márgenes */
+    padding-left: 0;
+    /* Sin padding izquierdo */
+    padding-right: 0;
+    /* Sin padding derecho */
+    padding-top: 114px;
+    /* Espacio para el header */
+    padding-bottom: 0;
+    /* Sin padding inferior */
     overflow: hidden;
 }
 
@@ -874,6 +946,10 @@ header {
     background: white;
     width: 100%;
     height: calc(100% + 37px);
+    margin: 0;
+    /* Sin márgenes */
+    padding: 0;
+    /* Sin padding */
 }
 
 /* Responsive para las pestañas en móviles */
@@ -881,23 +957,25 @@ header {
     .header-tabs {
         margin: 0.5rem 0;
     }
-    
+
     .header-tab-button {
         padding: 0.5rem 1rem;
         font-size: 0.875rem;
     }
-    
+
     /* Ajuste del padding superior para móviles */
     .fullscreen-powerbi {
-        padding-top: 140px; /* Más espacio en móviles */
+        padding-top: 140px;
+        /* Más espacio en móviles */
     }
 }
 
 @media (max-width: 640px) {
     .fullscreen-powerbi {
-        padding-top: 160px; /* Aún más espacio en pantallas muy pequeñas */
+        padding-top: 160px;
+        /* Aún más espacio en pantallas muy pequeñas */
     }
-    
+
     .header-tab-button {
         padding: 0.375rem 0.75rem;
         font-size: 0.8125rem;
@@ -908,7 +986,8 @@ header {
 #powerbi-container {
     position: relative;
     width: 100%;
-    height: 100%; /* Si usas el truco de ocultar barra, usa calc(100% + 37px) */
+    height: 100%;
+    /* Si usas el truco de ocultar barra, usa calc(100% + 37px) */
     overflow: hidden;
 }
 
@@ -921,10 +1000,13 @@ header {
     top: 0;
     left: 0;
     width: 100%;
-    height: calc(100% + 58px); /* Ajuste para evitar barra inferior */
+    height: calc(100% + 58px);
+    /* Ajuste para evitar barra inferior */
     border: none;
-    background-color: white; /* Vital para tapar lo de atrás */
-    transition: opacity 0.5s ease-in-out; /* Suaviza la entrada */
+    background-color: white;
+    /* Vital para tapar lo de atrás */
+    transition: opacity 0.5s ease-in-out;
+    /* Suaviza la entrada */
 }
 
 /* El iframe que se ve (Arriba) */
@@ -936,5 +1018,21 @@ header {
 /* El iframe que carga (Abajo/Detrás) */
 .pbi-loading {
     z-index: 1;
-    opacity: 1; /* Mantener opaco para no ver transparencias raras */
+    opacity: 1;
+    /* Mantener opaco para no ver transparencias raras */
+}
+
+/* Ocultar iframe de Power BI en móviles y tablets */
+@media (max-width: 1024px) {
+    #power-bi-iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: calc(100% + 60px);
+        border: none;
+        background-color: white;
+        /* Vital para tapar lo de atrás */
+        transition: opacity 0.5s ease-in-out;   
+    }
 }
