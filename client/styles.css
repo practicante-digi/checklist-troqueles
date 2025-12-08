@@ -1029,10 +1029,42 @@ header {
         top: 0;
         left: 0;
         width: 100%;
-        height: calc(100% + 60px);
+        height: calc(100% + 160px);
         border: none;
         background-color: white;
         /* Vital para tapar lo de atrás */
-        transition: opacity 0.5s ease-in-out;   
+        transition: opacity 0.5s ease-in-out;
     }
+}
+
+/* Estilos para tablets medianos (alrededor de 572x786) - Header compacto */
+@media (min-width: 500px) and (max-width: 800px) {
+
+    /* Reducir espacio entre elementos del header */
+    header .flex.items-center.gap-3 {
+        gap: 0.25rem !important;
+    }
+
+    /* Reducir padding de los tabs */
+    .header-tab-button {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.8125rem !important;
+    }
+
+    /* Reducir tamaño de fecha y hora */
+    #header-date,
+    #header-timer {
+        font-size: 0.75rem !important;
+    }
+
+    /* Reducir gap general del header */
+    header .flex.flex-col.sm\:flex-row.items-center.justify-between.gap-4 {
+        gap: 0.25rem !important;
+    }
+
+    /* Reducir margen de las tabs */
+    .header-tabs {
+        gap: 0.25rem !important;
+    }
+
 }
