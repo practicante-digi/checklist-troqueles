@@ -11,12 +11,16 @@ import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import https from 'https';
 import fs from 'fs';
+import QRCode from 'qrcode';
 
 // --- Configuración de Módulos ES para __dirname ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config();
+
+// --- URL base para códigos QR ---
+const APP_BASE_URL = process.env.APP_BASE_URL || `https://localhost:${process.env.PORT || 3000}`;
 
 // --- Configuración de Winston Logger ---
 const logger = winston.createLogger({
@@ -176,17 +180,17 @@ const schemaFinalizarMantenimiento = Joi.object({
 // Middleware de validación
 const validarEsquema = (esquema) => {
     return (req, res, next) => {
-        const { error } = esquema.validate(req.body, { 
+        const { error } = esquema.validate(req.body, {
             abortEarly: false, // Muestra todos los errores, no solo el primero
             stripUnknown: true // Elimina campos no definidos en el esquema
         });
-        
+
         if (error) {
             const errores = error.details.map(detail => ({
                 campo: detail.path.join('.'),
                 mensaje: detail.message
             }));
-            
+
             // Log del intento de datos maliciosos
             logger.warn('Datos inválidos detectados', {
                 ip: req.ip,
@@ -198,13 +202,13 @@ const validarEsquema = (esquema) => {
                 timestamp: new Date().toISOString(),
                 type: 'VALIDATION_ERROR'
             });
-            
-            return res.status(400).json({ 
-                error: 'Datos de entrada inválidos', 
-                detalles: errores 
+
+            return res.status(400).json({
+                error: 'Datos de entrada inválidos',
+                detalles: errores
             });
         }
-        
+
         next();
     };
 };
@@ -269,13 +273,13 @@ app.get('/api/actividades', getLimiter, async (req, res) => {
         };
 
         result.recordset.forEach(row => {
-            const task = { 
-                id: row.id, 
-                label: row.label, 
-                status: null, 
-                comment: "" 
+            const task = {
+                id: row.id,
+                label: row.label,
+                status: null,
+                comment: ""
             };
-            
+
             if (row.tipo === 'Preventivo') {
                 actividades.preventivo.push(task);
             } else if (row.tipo === 'Correctivo') {
@@ -309,7 +313,7 @@ app.post('/api/mantenimiento/iniciar', apiLimiter, validarEsquema(schemaIniciarM
                 OUTPUT INSERTED.idMantenimiento
                 VALUES (@idTroquel, GETDATE(), NULL, @idUsuario);
             `);
-        
+
         const idMantenimiento = result.recordset[0].idMantenimiento;
 
         // Log del evento de seguridad
@@ -323,9 +327,9 @@ app.post('/api/mantenimiento/iniciar', apiLimiter, validarEsquema(schemaIniciarM
             type: 'MANTENIMIENTO_INICIADO'
         });
 
-        res.status(201).json({ 
-            message: 'Mantenimiento iniciado con éxito', 
-            idMantenimiento: idMantenimiento 
+        res.status(201).json({
+            message: 'Mantenimiento iniciado con éxito',
+            idMantenimiento: idMantenimiento
         });
 
     } catch (err) {
@@ -368,7 +372,7 @@ app.post('/api/mantenimiento/finalizar', apiLimiter, validarEsquema(schemaFinali
         psDetalle.input('idCheckList', mssql.Int);
         psDetalle.input('Estado', mssql.NVarChar(50));
         psDetalle.input('Comentario', mssql.NVarChar(500));
-        
+
         await psDetalle.prepare(`
             INSERT INTO Mantenimiento.Mantenimiento_Detalle (idMantenimiento, idCheckList, Estado, Comentario)
             VALUES (@idMantenimiento, @idCheckList, @Estado, @Comentario);
@@ -398,9 +402,9 @@ app.post('/api/mantenimiento/finalizar', apiLimiter, validarEsquema(schemaFinali
             type: 'MANTENIMIENTO_FINALIZADO'
         });
 
-        res.status(200).json({ 
-            message: 'Mantenimiento finalizado con éxito', 
-            idMantenimiento: idMantenimiento 
+        res.status(200).json({
+            message: 'Mantenimiento finalizado con éxito',
+            idMantenimiento: idMantenimiento
         });
 
     } catch (err) {
@@ -414,14 +418,14 @@ const validarIdParam = (req, res, next) => {
     const { id } = req.params;
     const schema = Joi.number().integer().positive().required();
     const { error } = schema.validate(parseInt(id));
-    
+
     if (error) {
-        return res.status(400).json({ 
-            error: 'ID inválido', 
-            mensaje: 'El ID debe ser un número entero positivo' 
+        return res.status(400).json({
+            error: 'ID inválido',
+            mensaje: 'El ID debe ser un número entero positivo'
         });
     }
-    
+
     next();
 };
 
@@ -466,6 +470,66 @@ app.delete('/api/mantenimiento/:id', apiLimiter, validarIdParam, async (req, res
 
 app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dashboard.html'));
+});
+
+app.get('/qr-manager', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/qr-manager.html'));
+});
+
+// GET: Genera QRs de todos los troqueles activos (base64)
+// IMPORTANTE: Esta ruta DEBE estar antes de /api/troqueles/:id/qr para evitar que Express interprete "qr" como :id
+app.get('/api/troqueles/qr/batch', getLimiter, async (req, res) => {
+    try {
+        const dbPool = await connectDB();
+        const result = await dbPool.request()
+            .query(`SELECT idTroquel, Codigo FROM Mantenimiento.Troqueles WHERE bActivo = 1 ORDER BY Codigo`);
+
+        const troqueles = await Promise.all(result.recordset.map(async (t) => {
+            const url = `${APP_BASE_URL}/?troquel=${t.idTroquel}`;
+            const qrDataUrl = await QRCode.toDataURL(url, {
+                width: 300,
+                margin: 2,
+                color: { dark: '#000000', light: '#ffffff' }
+            });
+            return { idTroquel: t.idTroquel, codigo: t.Codigo, qr: qrDataUrl, url };
+        }));
+
+        res.json(troqueles);
+    } catch (err) {
+        logger.error('Error generando QRs en lote', { error: err.message });
+        res.status(500).json({ error: 'Error al generar los códigos QR' });
+    }
+});
+
+// GET: Genera QR individual como imagen PNG
+app.get('/api/troqueles/:id/qr', getLimiter, validarIdParam, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const dbPool = await connectDB();
+        const result = await dbPool.request()
+            .input('idTroquel', mssql.Int, parseInt(id))
+            .query(`SELECT idTroquel, Codigo FROM Mantenimiento.Troqueles WHERE idTroquel = @idTroquel AND bActivo = 1`);
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ error: 'Troquel no encontrado' });
+        }
+
+        const troquel = result.recordset[0];
+        const url = `${APP_BASE_URL}/?troquel=${troquel.idTroquel}`;
+        const qrBuffer = await QRCode.toBuffer(url, {
+            type: 'png',
+            width: 300,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' }
+        });
+
+        res.set('Content-Type', 'image/png');
+        res.set('Content-Disposition', `inline; filename="QR-${troquel.Codigo}.png"`);
+        res.send(qrBuffer);
+    } catch (err) {
+        logger.error('Error generando QR', { error: err.message, idTroquel: id });
+        res.status(500).json({ error: 'Error al generar el código QR' });
+    }
 })
 
 const httpsOptions = {
@@ -481,6 +545,6 @@ connectDB().then(() => {
     });
 }).catch(error => {
     console.error('Error fatal al iniciar el servidor:', error);
-    process.exit(1); 
+    process.exit(1);
 });
 

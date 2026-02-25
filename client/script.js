@@ -73,6 +73,10 @@ async function initApp() {
         shouldSort: false,
     });
 
+    // --- Auto-selección desde QR (parámetro ?troquel=ID en la URL) ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const troquelFromQR = urlParams.get('troquel');
+
     // Revisar y restaurar estado guardado
     const savedState = localStorage.getItem('inProgressMaintenance');
 
@@ -103,6 +107,11 @@ async function initApp() {
 
         // Asegurar que el estado del botón sea correcto al restaurar
         updateSaveButtonStatus();
+    } else if (troquelFromQR) {
+        // Auto-selección desde QR: pre-seleccionar el troquel
+        choicesTroqueles.setChoiceByValue(String(troquelFromQR));
+        state.selectedTroquel = troquelFromQR;
+        checkHeaderFields();
     }
 }
 
