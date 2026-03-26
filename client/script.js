@@ -9,7 +9,12 @@ const state = {
         correctivo: [],
         antesProduccion: []
     },
-    timer: { seconds: 0, isRunning: false } // Estado del temporizador
+    timer: { seconds: 0, isRunning: false }, // Estado del temporizador
+    sectionComments: {
+        preventivo: "",
+        correctivo: "",
+        antesProduccion: ""
+    }
 };
 
 // --- Selectores del DOM ---
@@ -100,6 +105,19 @@ async function initApp() {
         accordionContainer.classList.remove('hidden');
         saveButtonContainer.classList.remove('hidden');
         startSection.classList.add('hidden');
+        document.body.classList.add('mantenimiento-activo');
+
+        const troquelDisplay = $('#header-troquel-display');
+        const tecnicoDisplay = $('#header-tecnico-display');
+
+        if (troquelDisplay && choicesTroqueles) {
+            const selectedTroquelData = choicesTroqueles.getValue();
+            troquelDisplay.textContent = selectedTroquelData?.label || state.selectedTroquel || '-';
+        }
+        if (tecnicoDisplay && choicesTecnicos) {
+            const selectedTecnicoData = choicesTecnicos.getValue();
+            tecnicoDisplay.textContent = selectedTecnicoData?.label || state.selectedTecnico || '-';
+        }
 
         renderAccordions();
         restoreUIState();
@@ -164,48 +182,32 @@ function handleSaveButtonClick() {
 
 // --- Función para validar el formulario antes de finalizar ---
 function validateFormBeforeFinalize() {
-    // 1. Verificar que al menos una sección esté completa
+    // 1. Verificar que al menos una tarea esté completada
     const sections = ['preventivo', 'correctivo', 'antesProduccion'];
-    let hasCompleteSection = false;
+    let hasAnyCompletedTask = false;
 
     for (const sectionKey of sections) {
         const tasks = state.tasks[sectionKey] || [];
-        const allTasksCompleted = tasks.length > 0 && tasks.every(task =>
-            task.status !== null &&
-            task.comment?.trim() !== ''
+        const hasCompletedTask = tasks.some(task =>
+            task.status === 'Completado'
         );
 
-        if (allTasksCompleted) {
-            hasCompleteSection = true;
+        if (hasCompletedTask) {
+            hasAnyCompletedTask = true;
             break;
         }
     }
 
-    if (!hasCompleteSection) {
+    if (!hasAnyCompletedTask) {
         return {
             isValid: false,
             type: 'no_complete_section',
-            message: 'Debes completar al menos una sección completa del checklist.',
+            message: 'Debes marcar al menos una actividad como completada.',
             title: 'Formulario Incompleto'
         };
     }
 
-    // 2. Verificar tareas con estado pero sin comentario
-    const allTasks = Object.values(state.tasks).flat();
-    const tasksSinComentario = allTasks.filter(task =>
-        task.status !== null && (!task.comment || task.comment.trim() === "")
-    );
-
-    if (tasksSinComentario.length > 0) {
-        const firstProblemTask = tasksSinComentario[0];
-        return {
-            isValid: false,
-            type: 'missing_comment',
-            task: firstProblemTask,
-            message: `La actividad "${firstProblemTask.label}" está marcada como "${firstProblemTask.status}" pero no tiene comentario.`,
-            title: 'Comentario Requerido'
-        };
-    }
+    // 2. Comentarios son opcionales — no se validan
 
     return { isValid: true };
 }
@@ -261,47 +263,10 @@ function handleValidationError(validationResult) {
         // Caso: no hay ninguna sección completa
         showToast(title, message, 'destructive');
 
-        // Mostrar información más detallada sobre qué falta
-        setTimeout(() => {
-            showSectionCompletionGuide();
-        }, 2000);
-
     } else {
         // Caso genérico
         showToast(title || 'Error de Validación', message, 'destructive');
     }
-}
-
-// --- Función para mostrar guía de completitud de secciones ---
-function showSectionCompletionGuide() {
-    const sections = [
-        { title: 'Mantenimiento Preventivo', key: 'preventivo' },
-        { title: 'Mantenimiento Correctivo', key: 'correctivo' },
-        { title: 'Previo de Producción', key: 'antesProduccion' }
-    ];
-
-    let guideMessage = 'Para finalizar el mantenimiento, debes completar al menos una sección entera:\n\n';
-
-    sections.forEach(section => {
-        const tasks = state.tasks[section.key] || [];
-        const completedTasks = tasks.filter(task =>
-            task.status !== null && task.comment?.trim() !== ''
-        );
-        const totalTasks = tasks.length;
-
-        const status = completedTasks.length === totalTasks && totalTasks > 0 ?
-            'Completa' :
-            `Incompleta (${completedTasks.length}/${totalTasks})`;
-
-        guideMessage += `• ${section.title}: ${status}\n`;
-    });
-
-    guideMessage += '\nCada actividad necesita:\n1. Seleccionar "Realizado" o "No Realizado"\n2. Agregar un comentario explicativo';
-
-    // Mostrar segundo toast con guía
-    setTimeout(() => {
-        showToast('Guía de Completitud', guideMessage, 'info');
-    }, 500);
 }
 
 // --- Función para manejar la confirmación del modal ---
@@ -408,11 +373,11 @@ function setupEventListeners() {
         }
     });
 
-    // Eventos para comentarios
+    // Eventos para comentarios de sección
     accordionContainer.addEventListener('input', (e) => {
-        const textarea = e.target.closest('.task-comment');
+        const textarea = e.target.closest('.section-comment-textarea');
         if (textarea) {
-            handleCommentChange(textarea);
+            handleSectionCommentChange(textarea);
         }
     });
 
@@ -438,43 +403,86 @@ function setupEventListeners() {
             await executeCancellation();
             cancelConfirmationModal.classList.add('hidden');
         });
-
-        cancelConfirmationModal.addEventListener('click', (e) => {
-            if (e.target === cancelConfirmationModal) {
-                cancelConfirmationModal.classList.add('hidden');
-            }
-        });
-
-        // Guarda el estado si el usuario refresca o cierra la pestaña
-        window.addEventListener('beforeunload', () => {
-            try {
-                if (state.currentMaintenanceId) {
-                    localStorage.setItem('inProgressMaintenance', JSON.stringify(state));
-                }
-            } catch (_) {
-                // silencioso
-            }
-        });
-
-        // --- Eventos para el modal de confirmación ---
-        const modalCancelButton = $('#modal-cancel-button');
-        const modalConfirmButton = $('#modal-confirm-button');
-
-        modalCancelButton.addEventListener('click', () => {
-            hideConfirmationModal();
-        });
-
-        modalConfirmButton.addEventListener('click', handleModalConfirmation);
-
-        confirmationModal.addEventListener('click', (e) => {
-            if (e.target === confirmationModal) {
-                hideConfirmationModal();
-            }
-        });
-
-        // --- Eventos para las pestañas ---
-        setupTabEvents();
     }
+
+    // --- GESTIÓN DEL MENÚ MÓVIL PREMIUM (Overlay) ---
+    const mobileMenuBtn = $('#mobile-menu-btn');
+    const mobileMenuClose = $('#mobile-menu-close'); // <- Importante
+    const mobileMenuOverlay = $('#mobile-menu-overlay');
+
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', openMobileMenu);
+    }
+
+    // ESTO ES LO QUE HACE QUE LA "X" CIERRE EL MENÚ
+    if (mobileMenuClose) {
+        mobileMenuClose.addEventListener('click', closeMobileMenu);
+    }
+
+    function openMobileMenu() {
+        if (mobileMenuOverlay) {
+            mobileMenuOverlay.classList.remove('pointer-events-none');
+            mobileMenuOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden'; // Bloquear scroll
+        }
+    }
+
+    function closeMobileMenu() {
+        if (mobileMenuOverlay) {
+            mobileMenuOverlay.classList.remove('open');
+            setTimeout(() => {
+                mobileMenuOverlay.classList.add('pointer-events-none');
+            }, 500);
+            document.body.style.overflow = ''; // Habilitar scroll
+        }
+    }
+
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMobileMenu);
+    if (mobileMenuClose) mobileMenuClose.addEventListener('click', closeMobileMenu);
+
+    // Cerrar menú al hacer click en un enlace
+    document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', closeMobileMenu);
+    });
+
+    // Evento del botón de cancelar superior (móvil - Modo Zen)
+    const headerCancelBtn = $('#header-cancel-btn');
+    if (headerCancelBtn) {
+        headerCancelBtn.addEventListener('click', () => {
+            const cancelConfirmationModal = $('#cancel-confirmation-modal');
+            if (cancelConfirmationModal) cancelConfirmationModal.classList.remove('hidden');
+        });
+    }
+
+    // Guarda el estado si el usuario refresca o cierra la pestaña
+    window.addEventListener('beforeunload', () => {
+        try {
+            if (state.currentMaintenanceId) {
+                localStorage.setItem('inProgressMaintenance', JSON.stringify(state));
+            }
+        } catch (_) {
+            // silencioso
+        }
+    });
+
+    // --- Eventos para el modal de confirmación ---
+    const modalCancelButton = $('#modal-cancel-button');
+    const modalConfirmButton = $('#modal-confirm-button');
+
+    modalCancelButton.addEventListener('click', () => {
+        hideConfirmationModal();
+    });
+
+    modalConfirmButton.addEventListener('click', handleModalConfirmation);
+
+    confirmationModal.addEventListener('click', (e) => {
+        if (e.target === confirmationModal) {
+            hideConfirmationModal();
+        }
+    });
+
+    // --- Eventos para las pestañas ---
+    setupTabEvents();
 }
 
 
@@ -487,7 +495,7 @@ async function fetchTroqueles() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const troqueles = await response.json();
-        renderSelect(troquelesSelect, troqueles, 'Seleccionar troquel...', 'idTroquel', 'Codigo');
+        renderSelect(troquelesSelect, troqueles, 'Seleccionar troquel', 'idTroquel', 'Codigo');
     } catch (error) {
         showToast("Error al cargar troqueles", "No se pudo conectar al servidor.", "destructive");
     }
@@ -499,7 +507,7 @@ async function fetchTecnicos() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const tecnicos = await response.json();
-        renderSelect(techSelect, tecnicos, 'Seleccionar técnico...', 'idUsuario', 'Nombre');
+        renderSelect(techSelect, tecnicos, 'Seleccionar técnico', 'idUsuario', 'Nombre');
     } catch (error) {
         showToast('Error al cargar técnicos', "No se pudo conectar al servidor.", 'destructive');
     }
@@ -567,14 +575,26 @@ function renderAccordions() {
 
 function createTaskSectionHtml(title, sectionKey) {
     return `
-        <div class="rounded-lg border border-gray-300 bg-white shadow-sm">
+        <div class="rounded-sm border border-gray-300 bg-white shadow-sm">
             <button class="accordion-trigger flex w-full items-center justify-between px-4 py-3 text-lg font-bold focus:outline-none" data-target="#accordion-content-${sectionKey}">
                 ${title}
                 <svg class="accordion-chevron h-6 w-6 text-gray-500 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <div id="accordion-content-${sectionKey}" class="accordion-content px-4">
                 <div class="task-list space-y-0 px-4" data-task-list-for="${sectionKey}"></div>
-                <div class="h-4"></div>
+                
+                <!-- Sección de Comentario por Bloque -->
+                <div class="section-comment-container mt-6 px-4 pb-6 border-t border-gray-100 pt-4 transition-all duration-300" id="comment-container-${sectionKey}">
+                    <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        Observaciones
+                    </label>
+                    <textarea 
+                        id="comment-textarea-${sectionKey}"
+                        class="section-comment-textarea w-full rounded-sm border border-gray-300 p-3 text-sm shadow-sm outline-none transition-all"
+                        placeholder="Escribe aquí notas generales sobre esta sección..."
+                        data-section="${sectionKey}"
+                    ></textarea>
+                </div>
             </div>
         </div>
     `;
@@ -589,83 +609,32 @@ function createTaskRowHtml(task, sectionKey) {
 
     const clone = taskRowTemplate.content.cloneNode(true);
     const rowElement = clone.querySelector('.task-row');
-    const labelSpan = clone.querySelector('.text-base');
-    const buttons = clone.querySelectorAll('.task-button');
-    const viewCommentBtn = clone.querySelector('.view-comment-btn');
-    const commentContainer = clone.querySelector('.task-comment-container');
-    const textareaRealizado = clone.querySelector('.task-comment-realizado');
-    const textareaNoRealizado = clone.querySelector('.task-comment-no-realizado');
+    const labelSpan = clone.querySelector('.task-label');
+    const checkbox = clone.querySelector('.task-checkbox');
 
-    if (!rowElement || !labelSpan) {
+    if (!rowElement || !labelSpan || !checkbox) {
         return document.createTextNode('Error: Elementos faltantes.');
     }
 
     rowElement.dataset.taskId = task.id;
     labelSpan.textContent = task.label;
 
-    // Configurar botones de estado
-    buttons.forEach(btn => {
-        btn.dataset.section = sectionKey;
-        btn.dataset.taskId = task.id;
+    // Configurar checkbox
+    checkbox.dataset.section = sectionKey;
+    checkbox.dataset.taskId = task.id;
+    checkbox.checked = task.status === 'Completado';
+
+    checkbox.addEventListener('change', (e) => {
+        handleStatusClick(checkbox);
     });
 
-    // Configurar botón de ver comentario
-    viewCommentBtn.dataset.section = sectionKey;
-    viewCommentBtn.dataset.taskId = task.id;
-
-    // Configurar textareas
-    [textareaRealizado, textareaNoRealizado].forEach(textarea => {
-        textarea.dataset.section = sectionKey;
-        textarea.dataset.taskId = task.id;
-        textarea.style.display = 'none';
-    });
-
-    // Configurar evento para el botón de ver comentario
-    viewCommentBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const container = e.target.closest('.task-row').querySelector('.task-comment-container');
-        const textarea = e.target.closest('.task-row').querySelector(`.task-comment-${task.status}`);
-
-        if (container) {
-            container.classList.toggle('visible');
-            if (container.classList.contains('visible') && textarea) {
-                textarea.classList.add('visible');
-                setTimeout(() => {
-                    textarea.focus();
-                }, 100);
-            } else if (textarea) {
-                textarea.classList.remove('visible');
-            }
+    // Add click event listener to the entire row
+    rowElement.addEventListener('click', (e) => {
+        // Prevent toggling if clicking on the checkbox directly (to avoid double toggle)
+        if (e.target.type !== 'checkbox') {
+            checkbox.checked = !checkbox.checked;
+            handleStatusClick(checkbox);
         }
-    });
-
-    // Configurar eventos para los botones de estado
-    buttons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            const status = button.dataset.status;
-            const otherStatus = status === 'Completado' ? 'No Completado' : 'Completado';
-            const textarea = clone.querySelector(`.task-comment-${status}`);
-            const otherTextarea = clone.querySelector(`.task-comment-${otherStatus}`);
-
-            if (textarea) {
-                textarea.style.display = 'block';
-                textarea.classList.add('visible');
-                commentContainer.classList.add('visible');
-
-                // Enfocar el textarea después de la animación
-                setTimeout(() => {
-                    textarea.focus();
-                }, 100);
-            }
-
-            if (otherTextarea) {
-                otherTextarea.style.display = 'none';
-                otherTextarea.classList.remove('visible');
-            }
-
-            // Mostrar el botón de ver comentario
-            viewCommentBtn.classList.remove('hidden');
-        });
     });
 
     return rowElement;
@@ -687,105 +656,12 @@ function handleAccordionClick(trigger) {
     }
 }
 
-function handleStatusClick(button) {
-    const { section, taskId, status: newStatus } = button.dataset;
-    const taskRow = button.closest('.task-row');
+function handleStatusClick(checkbox) {
+    const { section, taskId } = checkbox.dataset;
     const task = state.tasks[section].find(t => t.id == taskId);
     if (!task) return;
 
-    const isDeselecting = task.status === newStatus;
-    const previousStatus = task.status;
-    task.status = isDeselecting ? null : newStatus;
-
-    // Cerrar otros comentarios abiertos
-    document.querySelectorAll('.task-comment-container.visible').forEach(container => {
-        if (container !== taskRow.querySelector('.task-comment-container')) {
-            container.classList.remove('visible');
-            container.querySelectorAll('textarea').forEach(ta => ta.classList.remove('visible'));
-        }
-    });
-
-    // Actualiza el DOM de los botones
-    const allButtons = taskRow.querySelectorAll('.task-button');
-    allButtons.forEach(btn => {
-        btn.classList
-        btn.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
-    });
-
-    // Elementos del DOM
-    const viewCommentBtn = taskRow.querySelector('.view-comment-btn');
-    const commentContainer = taskRow.querySelector('.task-comment-container');
-    const textarea = taskRow.querySelector(`.task-comment-${getStatusCssClass(newStatus)}`);
-    const otherStatus = (newStatus === 'Completado') ? 'No Completado' : 'Completado';
-    const otherTextarea = taskRow.querySelector(`.task-comment-${getStatusCssClass(otherStatus)}`);
-
-    if (isDeselecting) {
-        // Si se deselecciona, ocultar el contenedor y limpiar
-        if (commentContainer) {
-            commentContainer.classList.remove('visible');
-        }
-        if (textarea) {
-            textarea.classList.remove('visible');
-            textarea.value = "";
-        }
-        if (viewCommentBtn) {
-            viewCommentBtn.classList.add('hidden');
-        }
-        task.comment = "";
-    } else {
-        // Si se selecciona, actualizar estilos
-        button.classList.add('bg-orange-600', 'text-white', 'border-orange-600');
-
-        // Mostrar el botón de ver comentario
-        if (viewCommentBtn) {
-            viewCommentBtn.classList.remove('hidden');
-        }
-
-        // Asegurarse de que el contenedor sea visible
-        if (commentContainer) {
-            commentContainer.style.display = 'block';
-            commentContainer.classList.add('visible');
-        }
-
-        // Ocultar el otro textarea si existe
-        if (otherTextarea) {
-            otherTextarea.classList.remove('visible');
-            otherTextarea.style.display = 'none';
-        }
-
-        // Mostrar el textarea correspondiente
-        if (textarea) {
-            textarea.style.display = 'block';
-            textarea.classList.add('visible');
-
-            // Restaurar comentario si existe
-            if (task.comment && previousStatus === newStatus) {
-                textarea.value = task.comment;
-            } else {
-                textarea.value = "";
-                task.comment = "";
-            }
-
-            // Enfocar el textarea
-            setTimeout(() => {
-                textarea.focus();
-                // Hacer scroll suave al textarea si no está visible
-                const rect = textarea.getBoundingClientRect();
-                const isVisible = (
-                    rect.top >= 0 &&
-                    rect.left >= 0 &&
-                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-                );
-
-                if (!isVisible) {
-                    textarea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            }, 50);
-        }
-    }
-
-    validateTaskCommentVisuals(task, taskRow);
+    task.status = checkbox.checked ? 'Completado' : 'No Completado';
 
     // Verifica si la sección está completa después del cambio
     checkSectionCompletion(section);
@@ -802,13 +678,15 @@ function checkSectionCompletion(sectionKey) {
         return;
     }
 
-    // Una sección está completa solo si TODAS sus tareas tienen estado Y comentario
+    // En esta nueva lógica, consideramos la sección avanzada si hay checks, 
+    // pero COMPLETA (para habilitar comentarios) si TODOS los checks están marcados.
     const allTasksCompleted = tasks.length > 0 && tasks.every(task =>
-        task.status !== null &&
-        task.comment?.trim() !== ''
+        task.status === 'Completado'
     );
 
     const accordionButton = document.querySelector(`[data-target="#accordion-content-${sectionKey}"]`);
+    const commentContainer = document.getElementById(`comment-container-${sectionKey}`);
+    const commentTextarea = document.getElementById(`comment-textarea-${sectionKey}`);
 
     if (!accordionButton) {
         return;
@@ -823,16 +701,32 @@ function checkSectionCompletion(sectionKey) {
     updateSaveButtonStatus();
 }
 
+function handleSectionCommentChange(textarea) {
+    const { section } = textarea.dataset;
+    if (state.sectionComments.hasOwnProperty(section)) {
+        state.sectionComments[section] = textarea.value;
+
+        // Persistir estado en LocalStorage
+        localStorage.setItem('inProgressMaintenance', JSON.stringify(state));
+    }
+}
+
 function updateSaveButtonStatus() {
     const saveButton = $('#save-button');
     if (!saveButton) return;
 
-    // Verificar si hay al menos una sección completamente terminada
-    const anySectionComplete = document.querySelector('.accordion-trigger.section-complete');
-    saveButton.disabled = !anySectionComplete;
+    // El botón está activo si hay un mantenimiento en progreso 
+    // Y hay al menos una actividad marcada como completada
+    const hasCurrentMaintenance = !!state.currentMaintenanceId;
+    const hasAnyCompletedTask = Object.values(state.tasks).some(sectionTasks =>
+        sectionTasks.some(task => task.status === 'Completado')
+    );
+
+    const isEnabled = hasCurrentMaintenance && hasAnyCompletedTask;
+    saveButton.disabled = !isEnabled;
 
     // Actualizar visualmente el botón
-    if (anySectionComplete) {
+    if (isEnabled) {
         saveButton.classList.remove('opacity-50', 'cursor-not-allowed');
         saveButton.classList.add('hover:bg-orange-700');
     } else {
@@ -849,6 +743,16 @@ function handleCommentChange(textarea) {
         const taskRow = textarea.closest('.task-row');
         validateTaskCommentVisuals(task, taskRow);
         checkSectionCompletion(section);
+
+        // Actualizar texto del botón según si hay comentario
+        const viewBtn = taskRow.querySelector('.view-comment-btn');
+        if (viewBtn) {
+            const textSpan = viewBtn.querySelector('.view-comment-text');
+            if (textSpan) {
+                textSpan.textContent = textarea.value.trim() ? 'Ver comentario' : 'Agregar comentario';
+            }
+        }
+
         // Persistir estado en LocalStorage
         localStorage.setItem('inProgressMaintenance', JSON.stringify(state));
     }
@@ -952,6 +856,27 @@ async function handleStartMaintenance() {
         // Ocultar la sección de inicio
         startSection.classList.add('hidden');
 
+        // Activar la interfaz de Píldora (Isla Dinámica)
+        document.body.classList.add('mantenimiento-activo');
+
+        // Mostrar controles del header (timer y cancelar)
+        const headerActiveControls = $('#header-active-controls');
+        if (headerActiveControls) {
+            headerActiveControls.classList.remove('hidden');
+        }
+
+        // Actualizar info compacta de troquel y técnico en el header
+        const troquelDisplay = $('#header-troquel-display');
+        const tecnicoDisplay = $('#header-tecnico-display');
+        if (troquelDisplay && choicesTroqueles) {
+            const selectedTroquel = choicesTroqueles.getValue();
+            troquelDisplay.textContent = selectedTroquel?.label || selectedTroquel?.value || state.selectedTroquel;
+        }
+        if (tecnicoDisplay && choicesTecnicos) {
+            const selectedTecnico = choicesTecnicos.getValue();
+            tecnicoDisplay.textContent = selectedTecnico?.label || selectedTecnico?.value || state.selectedTecnico;
+        }
+
         // Deshabilitar los selectores para que no se puedan cambiar
         choicesTroqueles.disable();
         choicesTecnicos.disable();
@@ -986,7 +911,7 @@ async function handleStartMaintenance() {
 
 
 // --- Definición de showToast - Diseño Modal ---
-function showToast(title, description, variant = 'info') {
+function showToast(title, description, variant = 'info', duration = 4000) {
     const toast = $('#toast');
     const toastTitle = $('#toast-title');
     const toastDescription = $('#toast-description');
@@ -1035,10 +960,10 @@ function showToast(title, description, variant = 'info') {
     // Mostrar toast
     toast.classList.add('show');
 
-    // Auto-ocultar después de 5 segundos
+    // Auto-ocultar después del tiempo especificado
     setTimeout(() => {
         hideToast();
-    }, 5000);
+    }, duration);
 }
 
 // --- Función para ocultar el toast de manera controlada ---
@@ -1074,9 +999,17 @@ function setLoading(isLoading) {
 }
 
 async function resetForm() {
+    // Desactivar la interfaz de Píldora
+    document.body.classList.remove('mantenimiento-activo');
     state.selectedTroquel = "";
     state.selectedTecnico = "";
     state.currentMaintenanceId = null;
+
+    // Ocultar controles del header (timer y cancelar)
+    const headerActiveControls = $('#header-active-controls');
+    if (headerActiveControls) {
+        headerActiveControls.classList.add('hidden');
+    }
 
     // Resetea los <select> ocultos
     troquelesSelect.value = "";
@@ -1122,13 +1055,19 @@ async function resetForm() {
         `;
     }
 
+    // Limpiar comentarios de sección
+    state.sectionComments = {
+        preventivo: "",
+        correctivo: "",
+        antesProduccion: ""
+    };
+
     try {
         await fetchTasks();
     } catch (e) {        // silencioso
     }
 
     stopTimer();
-
     updateSaveButtonStatus();
 }
 
@@ -1138,88 +1077,22 @@ function restoreUIState() {
         tasks.forEach(task => {
             const taskRow = document.querySelector(`.task-row[data-task-id="${task.id}"]`);
             if (taskRow) {
-                // Elementos del DOM
-                const button = taskRow.querySelector(`.task-button[data-status="${task.status}"]`);
-                const viewCommentBtn = taskRow.querySelector('.view-comment-btn');
-                const commentContainer = taskRow.querySelector('.task-comment-container');
-                const textareaRealizado = taskRow.querySelector('.task-comment-realizado');
-                const textareaNoRealizado = taskRow.querySelector('.task-comment-no-realizado');
-
-                // Restablecer estilos de botones
-                taskRow.querySelectorAll('.task-button').forEach(btn => {
-                    btn.classList.remove('bg-orange-600', 'text-white', 'border-orange-600');
-                    btn.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
-                });
-
-                // Restaurar estado del botón si existe
-                if (button) {
-                    button.classList.add('bg-orange-600', 'text-white', 'border-orange-600');
-                    button.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
-                }
-
-                // Mostrar u ocultar el botón de ver comentario
-                if (viewCommentBtn) {
-                    if (task.status) {
-                        viewCommentBtn.classList.remove('hidden');
-                    } else {
-                        viewCommentBtn.classList.add('hidden');
-                    }
-                }
-
-                // Resetear contenedores y textareas
-                if (commentContainer) {
-                    commentContainer.classList.remove('visible');
-                    commentContainer.style.display = '';
-                }
-
-                if (textareaRealizado) {
-                    textareaRealizado.classList.remove('visible');
-                    textareaRealizado.style.display = '';
-                    textareaRealizado.value = (task.status === 'Completado') ? (task.comment || "") : "";
-                }
-                if (textareaNoRealizado) {
-                    textareaNoRealizado.classList.remove('visible');
-                    textareaNoRealizado.style.display = '';
-                    textareaNoRealizado.value = (task.status === 'No Completado') ? (task.comment || "") : "";
+                const checkbox = taskRow.querySelector('.task-checkbox');
+                if (checkbox) {
+                    checkbox.checked = task.status === 'Completado';
                 }
             }
-
-            checkSectionCompletion(sectionKey);
         });
-        updateSaveButtonStatus();
+
+        // Restaurar comentarios de sección
+        const commentTextarea = document.getElementById(`comment-textarea-${sectionKey}`);
+        if (commentTextarea && state.sectionComments[sectionKey]) {
+            commentTextarea.value = state.sectionComments[sectionKey];
+        }
+
+        // Refrescar el estado de completitud (para habilitar textarea y check verde)
+        checkSectionCompletion(sectionKey);
     });
-}
-
-/**
- * Revisa una tarea y aplica/quita el estilo de error obligatorio 
- * al textarea de "No Realizado".
- */
-function validateTaskCommentVisuals(task, taskRow) {
-    const textareaRealizado = taskRow.querySelector('.task-comment-realizado');
-    const textareaNoRealizado = taskRow.querySelector('.task-comment-no-realizado');
-    const commentIsEmpty = (!task.comment || task.comment.trim() === '');
-
-    // 1. Validar Textarea de "Realizado"
-    if (textareaRealizado) {
-        if (task.status === 'Completado' && commentIsEmpty) {
-            textareaRealizado.classList.add('task-comment-required');
-            textareaRealizado.placeholder = "Comentario obligatorio";
-        } else {
-            textareaRealizado.classList.remove('task-comment-required');
-            textareaRealizado.placeholder = "Agregar detalles para Realizado...";
-        }
-    }
-
-    // 2. Validar Textarea de "No Realizado"
-    if (textareaNoRealizado) {
-        if (task.status === 'No Completado' && commentIsEmpty) {
-            textareaNoRealizado.classList.add('task-comment-required');
-            textareaNoRealizado.placeholder = "Comentario obligatorio";
-        } else {
-            textareaNoRealizado.classList.remove('task-comment-required');
-            textareaNoRealizado.placeholder = "Agregar detalles para No Realizado...";
-        }
-    }
 }
 
 let timerInterval;
@@ -1232,13 +1105,19 @@ function formatTime(seconds) {
 }
 
 function startTimer() {
-    const timerElement = $('#header-timer');
+    const mobileTimer = $('#header-timer');
+    const desktopTimer = $('#header-timer-desktop');
+
     state.timer = { seconds: 0, isRunning: true };
 
-    timerElement.classList.remove('hidden');
+    if (mobileTimer) mobileTimer.classList.remove('hidden');
+    if (desktopTimer) desktopTimer.classList.remove('hidden');
+
     timerInterval = setInterval(() => {
         state.timer.seconds++;
-        timerElement.textContent = formatTime(state.timer.seconds);
+        const timeStr = formatTime(state.timer.seconds);
+        if (mobileTimer) mobileTimer.textContent = timeStr;
+        if (desktopTimer) desktopTimer.textContent = timeStr;
     }, 1000);
 }
 
@@ -1248,23 +1127,43 @@ function stopTimer() {
         timerInterval = null;
     }
     state.timer.isRunning = false;
-    const timerElement = $('#header-timer');
-    timerElement.classList.add('hidden');
-    timerElement.textContent = '00:00:00';
+
+    const mobileTimer = $('#header-timer');
+    const desktopTimer = $('#header-timer-desktop');
+
+    if (mobileTimer) {
+        mobileTimer.classList.add('hidden');
+        mobileTimer.textContent = '00:00:00';
+    }
+    if (desktopTimer) {
+        desktopTimer.classList.add('hidden');
+        desktopTimer.textContent = '00:00:00';
+    }
 }
 
 function restoreTimer() {
-    const timerElement = $('#header-timer');
+    const mobileTimer = $('#header-timer');
+    const desktopTimer = $('#header-timer-desktop');
+
     if (state.timer?.isRunning) {
-        timerElement.classList.remove('hidden');
-        timerElement.textContent = formatTime(state.timer.seconds);
+        if (mobileTimer) {
+            mobileTimer.classList.remove('hidden');
+            mobileTimer.textContent = formatTime(state.timer.seconds);
+        }
+        if (desktopTimer) {
+            desktopTimer.classList.remove('hidden');
+            desktopTimer.textContent = formatTime(state.timer.seconds);
+        }
 
         timerInterval = setInterval(() => {
             state.timer.seconds++;
-            timerElement.textContent = formatTime(state.timer.seconds);
+            const timeStr = formatTime(state.timer.seconds);
+            if (mobileTimer) mobileTimer.textContent = timeStr;
+            if (desktopTimer) desktopTimer.textContent = timeStr;
         }, 1000);
     } else {
-        timerElement.classList.add('hidden');
+        if (mobileTimer) mobileTimer.classList.add('hidden');
+        if (desktopTimer) desktopTimer.classList.add('hidden');
     }
 }
 
@@ -1300,16 +1199,24 @@ function showConfirmationModal() {
 
     sections.forEach(section => {
         const triggerButton = document.querySelector(`[data-target="#accordion-content-${section.key}"]`);
-        const isComplete = triggerButton?.classList.contains('section-complete');
+        const tasks = state.tasks[section.key] || [];
+        const completedCount = tasks.filter(t => t.status === 'Completado').length;
+        const totalCount = tasks.length;
+        const isComplete = totalCount > 0 && completedCount === totalCount;
 
         const li = document.createElement('li');
-        li.className = 'flex items-center gap-2';
+        li.className = 'flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-50';
         li.innerHTML = `
-            <svg class="h-5 w-5 ${isComplete ? 'text-green-500' : 'text-red-500'}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${isComplete ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' : 'M6 18L18 6M6 6l12 12'}"/>
-            </svg>
-            <span class="text-sm font-medium ${isComplete ? 'text-green-600' : 'text-red-600'}">
-                ${section.title}
+            <div class="flex items-center gap-2">
+                <svg class="h-5 w-5 ${isComplete ? 'text-green-500' : 'text-orange-500'}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${isComplete ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'}"/>
+                </svg>
+                <span class="text-sm font-medium ${isComplete ? 'text-green-700' : 'text-gray-700'}">
+                    ${section.title}
+                </span>
+            </div>
+            <span class="text-xs font-bold px-2 py-1 rounded${isComplete ? 'text-green-600' : 'text-orange-600'}">
+                ${completedCount} / ${totalCount}
             </span>
         `;
         modalSectionsSummary.appendChild(li);
@@ -1424,7 +1331,12 @@ async function executeFinalization() {
     try {
         // Preparar datos para envío (las validaciones ya se hicieron antes)
         const actividadesCompletadas = Object.keys(state.tasks).flatMap(sectionKey => {
-            return state.tasks[sectionKey].filter(task => task.status !== null);
+            const sectionComment = state.sectionComments[sectionKey] || "";
+            return state.tasks[sectionKey].map(task => ({
+                id: task.id,
+                status: task.status || "No Completado",
+                comment: sectionComment // El comentario de sección se replica en cada tarea para compatibilidad con DB
+            }));
         });
 
         // Enviar al servidor
@@ -1482,7 +1394,7 @@ async function executeCancellation() {
         const startButton = $('#start-button');
         startButton.classList.remove('hidden');
 
-        showToast('Mantenimiento Cancelado', 'El mantenimiento en progreso ha sido cancelado. Puedes iniciar uno nuevo cuando estés listo.', 'success');
+        showToast('Mantenimiento Cancelado', 'El mantenimiento en progreso ha sido cancelado. Puedes iniciar uno nuevo cuando estés listo.', 'success', 6000);
     } catch (error) {
         // Forzar limpieza del estado local incluso si el servidor falla
         state.currentMaintenanceId = null;
@@ -1526,26 +1438,49 @@ const POWERBI_URLS = {
 function setupTabEvents() {
     const tabFormulario = $('#tab-formulario');
     const tabInforme = $('#tab-informe');
+    const tabHistorial = $('#tab-historial'); // Nuevo
+    const tabQrs = $('#tab-qrs');             // Nuevo
 
-    if (tabFormulario) {
-        tabFormulario.addEventListener('click', () => switchTab('formulario'));
-    }
+    // Desktop
+    if (tabFormulario) tabFormulario.addEventListener('click', () => switchTab('formulario'));
+    if (tabInforme) tabInforme.addEventListener('click', () => switchTab('informe'));
+    if (tabHistorial) tabHistorial.addEventListener('click', () => switchTab('historial'));
+    if (tabQrs) tabQrs.addEventListener('click', () => switchTab('qrs'));
 
-    if (tabInforme) {
-        tabInforme.addEventListener('click', () => switchTab('informe'));
-    }
+    // Mobile Overlay
+    document.querySelectorAll('.mobile-nav-link[data-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            switchTab(tabId);
+        });
+    });
 }
 
 function switchTab(activeTab) {
-    // Obtener elementos de las pestañas
+    if (activeTab === 'historial') {
+        window.location.href = '/historial'; // O 'historial.html' según tu servidor
+        return;
+    }
+    if (activeTab === 'qrs') {
+        window.location.href = '/qr-manager.html';
+        return;
+    }
+
     const tabFormulario = $('#tab-formulario');
     const tabInforme = $('#tab-informe');
     const contentFormulario = $('#tab-content-formulario');
     const contentInforme = $('#tab-content-informe');
 
-    // Remover clase activa de todas las pestañas
+    // Desktop: Remover clase activa
     [tabFormulario, tabInforme].forEach(tab => {
         if (tab) tab.classList.remove('active');
+    });
+
+    // Mobile: Remover clase activa y resetear colores
+    document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.classList.remove('active');
+        link.classList.add('text-gray-400');
+        link.classList.remove('text-gray-900');
     });
 
     // Ocultar todo el contenido
@@ -1557,11 +1492,27 @@ function switchTab(activeTab) {
     if (activeTab === 'formulario') {
         if (tabFormulario) tabFormulario.classList.add('active');
         if (contentFormulario) contentFormulario.classList.remove('hidden');
+
+        // Mobile Link
+        const mobLink = document.querySelector(`.mobile-nav-link[data-tab="formulario"]`);
+        if (mobLink) {
+            mobLink.classList.add('active');
+            mobLink.classList.add('text-gray-900');
+            mobLink.classList.remove('text-gray-400');
+        }
     } else if (activeTab === 'informe') {
         if (tabInforme) tabInforme.classList.add('active');
         if (contentInforme) contentInforme.classList.remove('hidden');
 
-        // Opcional: Recargar el iframe de Power BI para asegurar que se cargue correctamente
+        // Mobile Link
+        const mobLink = document.querySelector(`.mobile-nav-link[data-tab="informe"]`);
+        if (mobLink) {
+            mobLink.classList.add('active');
+            mobLink.classList.add('text-gray-900');
+            mobLink.classList.remove('text-gray-400');
+        }
+
+        // Recargar el iframe de Power BI para asegurar que se cargue correctamente
         refreshPowerBI();
     }
 }
@@ -1573,9 +1524,9 @@ function refreshPowerBI() {
         const isMobile = isMobileOrTablet();
         const powerBIUrl = isMobile ? POWERBI_URLS.mobile : POWERBI_URLS.desktop;
 
-        console.log('🔍 Dispositivo detectado:', isMobile ? 'Móvil/Tablet' : 'Desktop');
-        console.log('📊 Cargando reporte:', isMobile ? 'Mobile' : 'Desktop');
-        console.log('🔗 URL:', powerBIUrl);
+        console.log('Dispositivo detectado:', isMobile ? 'Móvil/Tablet' : 'Desktop');
+        console.log('Cargando reporte:', isMobile ? 'Mobile' : 'Desktop');
+        console.log('URL:', powerBIUrl);
 
         // Pequeño delay para permitir que la animación de mostrar termine
         setTimeout(() => {

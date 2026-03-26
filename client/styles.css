@@ -86,7 +86,7 @@
 }
 
 /* Estilos específicos para móviles - Ajustes adicionales */
-@media (max-width: 768px) {
+@media (max-width: 450px) {
     .accordion-content.open {
         max-height: 60vh;
         /* Menor altura en móviles para dejar más espacio */
@@ -106,68 +106,32 @@
     }
 }
 
-/* Estilos para los comentarios */
-.task-comment-container {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    margin: 0;
-    padding: 0;
-}
-
-.task-comment-container.visible {
-    max-height: 200px;
-    margin-top: 0.75rem;
-    padding-bottom: 0.5rem;
-}
-
-.task-comment {
+/* --- Estilos para Comentarios por Sección --- */
+.section-comment-textarea {
+    min-height: 100px;
+    resize: vertical;
     width: 100%;
-    min-height: 80px;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    padding: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
     font-size: 0.875rem;
-    transition: all 0.2s ease;
-}
-
-.task-comment:focus {
-    outline: none;
-}
-
-/* Estilos para el contenedor de comentarios */
-.task-comment-container {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    margin: 0;
-    padding: 0;
-}
-
-.task-comment-container.visible {
-    max-height: 200px;
-    margin-top: 0.75rem;
-    padding-bottom: 0.5rem;
-}
-
-/* Estilos para los textareas de comentarios */
-.task-comment {
-    width: 100%;
-    min-height: 80px;
     border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    padding: 0.5rem;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: all 0.3s ease;
+    background-color: #f9fafb;
 }
 
-.task-comment.visible {
-    opacity: 1;
-    transform: translateY(0);
-    display: block;
+.section-comment-textarea:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    color: #9ca3af;
+}
+
+.section-comment-container {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section-comment-container:not(.grayscale) {
+    opacity: 1 !important;
+    filter: none !important;
 }
 
 /* Estilos para el botón de ver comentario */
@@ -344,7 +308,7 @@
 }
 
 /* Estilos para móvil */
-@media (max-width: 768px) {
+@media (max-width: 450px) {
     .view-comment-btn {
         margin: 0.5rem 0 0 0;
         width: 100%;
@@ -352,7 +316,7 @@
 }
 
 /* Estilos responsivos para móviles */
-@media (max-width: 768px) {
+@media (max-width: 450px) {
     .view-comment-btn {
         width: 100%;
         margin: 0.25rem 0;
@@ -360,155 +324,30 @@
     }
 }
 
-.view-comment-btn svg {
-    margin-right: 0.25rem;
-    width: 1rem;
-    height: 1rem;
-    color: #4B5563 !important;
-}
+/* Ajustes responsivos para dispositivos móviles */
+@media (max-width: 450px) {
 
-.view-comment-btn:hover svg {
-    color: #1F2937 !important;
-}
-
-.view-comment-btn.hidden {
-    display: none !important;
-}
-
-/* Estilos base para los botones de tarea */
-.task-button {
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.375rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    border: none;
-    cursor: pointer;
-    margin: 0.125rem;
-    min-width: auto;
-    flex: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    height: 2rem;
-    white-space: nowrap;
-}
-
-/* Estilos para el botón Realizado */
-.task-button[data-status="Completado"] {
-    color: #10B981 !important;
-    background-color: rgba(16, 185, 129, 0.1) !important;
-}
-
-.task-button[data-status="Completado"]:hover {
-    background-color: rgba(16, 185, 129, 0.15) !important;
-}
-
-/* Estilos para el botón Realizado cuando está seleccionado */
-.task-button[data-status="Completado"].bg-orange-600 {
-    background-color: #10B981 !important;
-    color: white !important;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.task-button[data-status="Completado"].bg-orange-600:hover {
-    background-color: #0d9c6e !important;
-}
-
-/* Estilos para el botón No Realizado */
-.task-button[data-status="No Completado"] {
-    color: #EF4444 !important;
-    background-color: rgba(239, 68, 68, 0.1) !important;
-}
-
-.task-button[data-status="No Completado"]:hover {
-    background-color: rgba(239, 68, 68, 0.15) !important;
-}
-
-/* Estilos para el botón No Realizado cuando está seleccionado */
-.task-button[data-status="No Completado"].bg-orange-600 {
-    background-color: #EF4444 !important;
-    color: white !important;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.task-button[data-status="No Completado"].bg-orange-600:hover {
-    background-color: #dc2626 !important;
-}
-
-/* Estilos para el contenedor de botones */
-.task-buttons-container {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-top: 0.5rem;
-}
-
-/* Fila de botones Realizado/No Realizado */
-.task-buttons-row {
-    display: flex;
-    gap: 0.5rem;
-}
-
-/* Estilos responsivos para móviles */
-@media (max-width: 768px) {
-    .task-row {
-        padding: 0.5rem 0;
-    }
-
-    .task-row>div {
-        width: 100%;
-    }
-
-    /* Contenedor principal de botones en móvil */
-    .task-buttons-container {
+    /* Ajuste para mostrar la hora debajo de la fecha en dispositivos móviles */
+    #header-date {
+        display: flex;
         flex-direction: column;
-        width: 100%;
-    }
-
-    /* Fila de botones Realizado/No Realizado en móvil */
-    .task-buttons-row {
-        width: 100%;
-    }
-
-    .task-button {
-        padding: 0.5rem;
-        font-size: 0.75rem;
-        height: 2.25rem;
-        margin: 0;
-        flex: 1;
-        display: flex;
         align-items: center;
-        justify-content: center;
-        border-radius: 0.375rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 
-    .task-button svg {
-        margin-right: 0.25rem;
-        width: 1rem;
-        height: 1rem;
+    #header-date span {
+        margin-left: 0;
+        /* Eliminar margen izquierdo en móvil */
     }
 
-    /* Botón de Ver Comentario */
-    .view-comment-btn {
-        margin-top: 0.5rem;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 0.5rem;
-        height: 2.25rem;
-        font-size: 0.75rem;
+    /* Ajustes específicos para Checklist */
+    .task-checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
     }
 }
 
 /* Ajuste para mostrar la hora debajo de la fecha en dispositivos móviles */
-@media (max-width: 768px) {
+@media (max-width: 450px) {
     #header-date {
         display: flex;
         flex-direction: column;
@@ -643,10 +482,9 @@
 }
 
 /* Ajustes responsivos para el toast en teléfonos y tablets */
-@media (max-width: 768px) {
+@media (max-width: 450px) {
     .toast {
         top: 1.5rem;
-        /* Muy cerca del header */
         bottom: auto;
         left: 50%;
         right: auto;
@@ -686,9 +524,45 @@
     }
 }
 
-/* --- Clase Utilitaria --- */
-.hidden {
-    display: none;
+/* Toast más pequeño en tablet */
+@media (min-width: 450px) and (max-width: 800px) {
+    .toast {
+        max-width: 20rem;
+        /* Más angosto que el default (28rem) */
+        bottom: 0.5rem;
+        /* Más cerca del borde inferior */
+        right: 0.5rem;
+        /* Más cerca del borde derecho */
+    }
+
+    /* Reducir padding interno */
+    .toast>div {
+        padding: 0.75rem;
+        /* Menos que p-6 (1.5rem) */
+    }
+
+    /* Icono más pequeño */
+    .toast #toast-icon-container {
+        width: 2rem;
+        height: 2rem;
+        margin-right: 0.5rem;
+    }
+
+    .toast #toast-icon {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    /* Texto más pequeño */
+    .toast #toast-title {
+        font-size: 0.875rem;
+        /* text-sm en vez de text-lg */
+    }
+
+    .toast #toast-description {
+        font-size: 0.75rem;
+        /* text-xs */
+    }
 }
 
 /* Sutil animación para mensajes inline (feedback minimalista) */
@@ -717,6 +591,7 @@
     background-color: #f0fdf4;
     /* Fondo verde muy claro */
     border-left: 4px solid #22c55e;
+    border-top-right-radius: 7px;
     /* Borde verde */
     padding-left: calc(1rem - 4px);
     /* Ajusta padding por el borde */
@@ -786,28 +661,6 @@
 }
 
 
-/* Estilos para el botón de finalizar deshabilitado */
-#save-button:disabled {
-    opacity: 0.5 !important;
-    cursor: not-allowed !important;
-    pointer-events: none !important;
-}
-
-#save-button:disabled:hover {
-    background-color: #ff5c35 !important;
-    /* Mantener el color original */
-    transform: none !important;
-}
-
-/* Asegurar que las clases de deshabilitado tengan prioridad */
-#save-button.opacity-50 {
-    opacity: 0.5 !important;
-}
-
-#save-button.cursor-not-allowed {
-    cursor: not-allowed !important;
-}
-
 /* Estilo para centrar el ícono dentro del círculo */
 #toast-icon-container {
     display: flex;
@@ -837,7 +690,7 @@
 }
 
 /* Ajustes responsivos para el toast */
-@media (max-width: 768px) {
+@media (max-width: 450px) {
     #toast-icon-container {
         height: 2.5rem;
         /* Tamaño más pequeño en móvil */
@@ -857,50 +710,21 @@
     /* Ajustes adicionales específicos para móviles */
 }
 
-/* --- Estilos para las pestañas en el header --- */
-.header-tabs {
-    display: flex;
-    gap: 0;
-    background-color: transparent;
-    padding: 0;
-    border-radius: 0;
-    border: none;
+/* Header Base */
+header#main-header {
+    z-index: 40;
 }
 
-.header-tab-button {
-    color: #64748b;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    white-space: nowrap;
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
-    padding: 0.5rem 1rem;
-    border-radius: 0;
-}
-
-.header-tab-button:hover {
-    color: #475569;
-    background-color: transparent;
-}
-
+/* Estilos para tabs activos - texto naranja */
 .header-tab-button.active {
-    color: #ff5c35;
-    background-color: transparent;
-    box-shadow: none;
-}
-
-/* Header siempre visible por encima del contenido */
-header {
-    position: relative;
-    z-index: 20;
-    /* Mayor que fullscreen-powerbi (z-index: 10) */
-    background-color: white;
+    color: #ff5c35 !important;
+    /* Naranja */
+    font-weight: 600;
 }
 
 /* Contenido de las pestañas */
 .tab-content {
-    animation: fadeInContent 0.3s ease-in-out;
+    animation: fadeInContent 0.5s ease-out;
 }
 
 .tab-content.hidden {
@@ -919,7 +743,19 @@ header {
     }
 }
 
-/* Estilos para el contenedor de Power BI en pantalla completa */
+
+
+/* 1. Header siempre visible por encima del iframe */
+header#main-header {
+    position: relative;
+    z-index: 40;
+    /* Mayor que fullscreen-powerbi (z-index: 10) */
+    background-color: white;
+}
+
+/* =========================================================
+   ESTILOS PARA EL MONITOR / POWER BI (RESTAURADO)
+   ========================================================= */
 .fullscreen-powerbi {
     position: fixed;
     top: 0;
@@ -929,15 +765,11 @@ header {
     z-index: 10;
     background-color: white;
     margin: 0;
-    /* Sin márgenes */
     padding-left: 0;
-    /* Sin padding izquierdo */
     padding-right: 0;
-    /* Sin padding derecho */
     padding-top: 114px;
-    /* Espacio para el header */
+    /* Espacio exacto para el header */
     padding-bottom: 0;
-    /* Sin padding inferior */
     overflow: hidden;
 }
 
@@ -946,62 +778,26 @@ header {
     background: white;
     width: 100%;
     height: calc(100% + 37px);
+    /* Oculta la barra inferior */
     margin: 0;
-    /* Sin márgenes */
     padding: 0;
-    /* Sin padding */
 }
 
-/* Responsive para las pestañas en móviles */
-@media (max-width: 768px) {
-    .header-tabs {
-        margin: 0.5rem 0;
-    }
-
-    .header-tab-button {
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-    }
-
-    /* Ajuste del padding superior para móviles */
-    .fullscreen-powerbi {
-        padding-top: 140px;
-        /* Más espacio en móviles */
-    }
-}
-
-@media (max-width: 640px) {
-    .fullscreen-powerbi {
-        padding-top: 160px;
-        /* Aún más espacio en pantallas muy pequeñas */
-    }
-
-    .header-tab-button {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.8125rem;
-    }
-}
-
-/* Estilos para Doble Buffering (Refresco Invisible) */
+/* --- Estilos para Doble Buffering (Refresco Invisible) --- */
 #powerbi-container {
     position: relative;
     width: 100%;
     height: 100%;
-    /* Si usas el truco de ocultar barra, usa calc(100% + 37px) */
     overflow: hidden;
 }
 
-
-/* --- ESTILOS PARA EL MONITOR/DASHBOARD --- */
-
-/* Clase base para los iframes del monitor */
 .pbi-iframe {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: calc(100% + 58px);
-    /* Ajuste para evitar barra inferior */
+    height: calc(100% + 37px);
+    /* Aquí ocultas la barrita */
     border: none;
     background-color: white;
     /* Vital para tapar lo de atrás */
@@ -1022,7 +818,7 @@ header {
     /* Mantener opaco para no ver transparencias raras */
 }
 
-/* Ocultar iframe de Power BI en móviles y tablets */
+/* --- Responsive para el Dashboard --- */
 @media (max-width: 1024px) {
     #power-bi-iframe {
         position: absolute;
@@ -1032,39 +828,140 @@ header {
         height: calc(100% + 160px);
         border: none;
         background-color: white;
-        /* Vital para tapar lo de atrás */
         transition: opacity 0.5s ease-in-out;
     }
 }
 
-/* Estilos para tablets medianos (alrededor de 572x786) - Header compacto */
-@media (min-width: 500px) and (max-width: 800px) {
+@media (max-width: 768px) {
+    .fullscreen-powerbi {
+        padding-top: 140px;
+        /* Más espacio en móviles por el nav */
+    }
+}
 
-    /* Reducir espacio entre elementos del header */
-    header .flex.items-center.gap-3 {
-        gap: 0.25rem !important;
+@media (max-width: 640px) {
+    .fullscreen-powerbi {
+        padding-top: 160px;
+        /* Aún más espacio en pantallas muy pequeñas */
+    }
+}
+
+/* 4. Ajustes Responsivos (El Nav crece en pantallas pequeñas) */
+@media (max-width: 500px) {
+    .fullscreen-powerbi {
+        padding-top: 140px;
+        /* Más espacio en tablets */
     }
 
-    /* Reducir padding de los tabs */
-    .header-tab-button {
-        padding: 0.25rem 0.5rem !important;
-        font-size: 0.8125rem !important;
+    #header-date-container {
+        display: none !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .fullscreen-powerbi {
+        padding-top: 160px;
+        /* Aún más espacio en celulares */
     }
 
-    /* Reducir tamaño de fecha y hora */
-    #header-date,
-    #header-timer {
-        font-size: 0.75rem !important;
+    #header-date-container {
+        display: none !important;
+    }
+}
+
+/* -------------------------------------------
+   Estilos Choice.js (Refinados)
+------------------------------------------- */
+.choices__inner .choices__item--selectable {
+    color: #1f2937 !important;
+    font-weight: 600;
+}
+
+.choices__list--dropdown .choices__item--selectable {
+    font-size: 0.875rem;
+}
+
+
+/* =========================================================
+   MODO MANTENIMIENTO ACTIVO 
+   ========================================================= */
+
+body.mantenimiento-activo #main-header {
+    position: sticky;
+    top: 0;
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 50;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+body.mantenimiento-activo #header-container {
+    padding-top: 0.1rem !important;
+    padding-bottom: 0.1rem !important;
+}
+
+body.mantenimiento-activo #header-logo {
+    height: 4rem !important;
+    width: 4rem !important;
+}
+
+/* Solo modificamos OPACIDAD y VISIBILIDAD. NO tocamos margins ni widths. 
+   Esto evita por completo que Flexbox recalcule y se trabe. */
+body.mantenimiento-activo #header-titles,
+body.mantenimiento-activo #header-tabs,
+body.mantenimiento-activo #header-date-container {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    display: none;
+}
+
+body.mantenimiento-activo #header-wrapper {
+    gap: 0.5rem;
+}
+
+body.mantenimiento-activo #header-maintenance-info {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+}
+
+body.mantenimiento-activo #header-active-controls {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+    display: flex !important;
+}
+
+/* Ocultar Choices.js cuando hay mantenimiento activo */
+body.mantenimiento-activo #troquelesSelect,
+body.mantenimiento-activo #tech-select,
+body.mantenimiento-activo label[for="troquelesSelect"],
+body.mantenimiento-activo label[for="tech-select"] {
+    display: none !important;
+}
+
+/* Ocultar el contenedor de los selectores */
+body.mantenimiento-activo .grid.gap-4:has(#troquelesSelect) {
+    display: none !important;
+}
+
+/* En tablet (450px+), los selectores deben estar en 2 columnas */
+@media (min-width: 450px) {
+    .grid.gap-4 {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
-    /* Reducir gap general del header */
-    header .flex.flex-col.sm\:flex-row.items-center.justify-between.gap-4 {
-        gap: 0.25rem !important;
+    /* Cada hijo ocupa su columna */
+    .grid.gap-4>div {
+        min-width: 0 !important;
     }
 
-    /* Reducir margen de las tabs */
-    .header-tabs {
-        gap: 0.25rem !important;
+    /* Choices.js debe ajustarse al ancho del contenedor */
+    .choices {
+        width: 100% !important;
     }
-
 }
