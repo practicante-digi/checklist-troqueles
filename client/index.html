@@ -10,13 +10,6 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-  <style>
-    @media (max-width: 500px) {
-      #header-date-container {
-        display: none !important;
-      }
-    }
-  </style>
 </head>
 
 <body class="bg-gray-100">
@@ -78,19 +71,17 @@
   <!-- Contenedor del Formulario de Mantenimiento -->
   <main id="tab-content-formulario" class="tab-content container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-4xl">
     <!-- Selectores de Troquel y Técnico -->
-    <div class="mb-6 grid gap-4 sm:grid-cols-2">
-      <div class="space-y-2">
+    <div class="mb-6 grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="space-y-2 mb-4">
         <label for="troquelesSelect" class="text_primary_color text-base font-semibold">Troquel</label>
         <select name="troquelesSelect" id="troquelesSelect"
           class="text_text_primary_color h-12 w-full rounded-md border border-gray-300 bg-white text-base shadow-sm focus:outline-none">
-          <option value="">Seleccionar troquel</option>
         </select>
       </div>
       <div class="space-y-2">
         <label for="tech-select" class="text_primary_color text-base font-semibold">Técnico</label>
         <select name="tech-select" id="tech-select"
           class="text_text_primary_color h-12 w-full rounded-md border border-gray-300 bg-white text-base shadow-sm focus:outline-none disabled">
-          <option value="">Seleccionar técnico</option>
         </select>
       </div>
     </div>

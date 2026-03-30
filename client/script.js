@@ -53,7 +53,72 @@ async function initApp() {
     setHeaderInfo();
     setupEventListeners();
 
-    // Cargar datos base
+    choicesTroqueles = new Choices(troquelesSelect, {
+        searchEnabled: true,
+        searchFields: ['label', 'busquedaCliente'],
+        itemSelectText: '',
+        shouldSort: false,
+        allowHTML: true,
+        placeholder: true,
+        callbackOnCreateTemplates: function(template) {
+            return {
+                choice: function(classNames, data) {
+
+                    // Si el valor está vació, lo dibujamos simple
+                    if (data.value === '') {
+                        return template(`<div style="display: none;" data-choice data-value="${data.value}"></div>`);
+                    }
+
+                    const cliente = data.customProperties?.cliente || 'Sin cliente asignado';
+                    const tieneDemanda = data.customProperties?.tieneDemanda;
+                    const imagenUrl = data.customProperties?.imagenUrl || null; 
+                    
+                    const badgeDemanda = tieneDemanda === 0 
+                        ? `<span style="background-color: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; white-space: nowrap;">SIN DEMANDA</span>` 
+                        : '';
+
+                    const renderThumbnail = imagenUrl 
+                        ? `<img src="${imagenUrl}" alt="Troquel" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                           <span style="display: none; color: #9ca3af; font-size: 1.25rem;"></span>`
+                        : `<span style="color: #9ca3af; font-size: 1.25rem;"></span>`;
+
+                    return template(`
+                        <div class="${classNames.item} ${classNames.itemChoice} ${classNames.itemSelectable}" data-select-text="${this.config.itemSelectText}" data-choice data-id="${data.id}" data-value="${data.value}" data-choice-selectable>
+                            
+                            <div style="display: flex; align-items: center; gap: 12px; width: 100%; margin: 6px 0">
+                                <div style="flex-shrink: 0; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px;">
+                                    ${renderThumbnail}
+                                </div>
+                                
+                                <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                        <span style="font-weight: 700; color: #1f2937; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            ${data.label}
+                                        </span>
+                                        ${badgeDemanda}
+                                    </div>
+                                    <span style="font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">
+                                        ${cliente}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+            };
+        }
+    });
+
+    choicesTecnicos = new Choices(techSelect, {
+        searchEnabled: false,
+        itemSelectText: '',
+        shouldSort: false,
+        placeholder: true,
+    });
+
+    // ==========================================
+    // DESPUÉS HACEMOS EL FETCH PARA LLENARLOS
+    // ==========================================
     try {
         await Promise.all([
             fetchTroqueles(),
@@ -65,25 +130,15 @@ async function initApp() {
         return;
     }
 
-    // Inicializar Choices.js
-    choicesTroqueles = new Choices(troquelesSelect, {
-        searchEnabled: true,
-        itemSelectText: 'Presiona para seleccionar',
-        shouldSort: false, // Usar el orden que viene del servidor
-    });
-
-    choicesTecnicos = new Choices(techSelect, {
-        searchEnabled: true,
-        itemSelectText: 'Presiona para seleccionar',
-        shouldSort: false,
-    });
-
-    // --- Auto-selección desde QR (parámetro ?troquel=ID en la URL) ---
+    // ==========================================
+    // 3. RESTAURAR ESTADO O CÓDIGO QR
+    // ==========================================
     const urlParams = new URLSearchParams(window.location.search);
     const troquelFromQR = urlParams.get('troquel');
 
-    // Revisar y restaurar estado guardado
     const savedState = localStorage.getItem('inProgressMaintenance');
+    
+    // ... (el resto de tu código de initApp se queda igual a partir de aquí)
 
     if (savedState) {
         const restoredData = JSON.parse(savedState);
@@ -487,15 +542,36 @@ function setupEventListeners() {
 
 
 // FUNCIONES DE CARGA DE DATOS (FETCH)
-
-
 async function fetchTroqueles() {
     try {
         const response = await fetch('/api/troqueles');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const troqueles = await response.json();
-        renderSelect(troquelesSelect, troqueles, 'Seleccionar troquel', 'idTroquel', 'Codigo');
+        
+        const opciones = troqueles.map(t => {
+            const imageUrl = t.ClaveMaterial 
+                ? `/api/troqueles/imagen/${t.ClaveMaterial}` 
+                : null;
+
+            return {
+                value: t.idTroquel,
+                label: t.Codigo,
+                busquedaCliente: t.Cliente || '', 
+                customProperties: {
+                    cliente: t.Cliente,
+                    tieneDemanda: t.TieneDemanda,
+                    imagenUrl: imageUrl 
+                }
+            };
+        });
+
+        choicesTroqueles.clearChoices();
+        choicesTroqueles.setChoices([
+            { value: '', label: 'Seleccionar troquel', selected: true, disabled: true, placeholder: true },
+            ...opciones
+        ], 'value', 'label', true);
+
     } catch (error) {
         showToast("Error al cargar troqueles", "No se pudo conectar al servidor.", "destructive");
     }
@@ -507,34 +583,42 @@ async function fetchTecnicos() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const tecnicos = await response.json();
-        renderSelect(techSelect, tecnicos, 'Seleccionar técnico', 'idUsuario', 'Nombre');
+        
+        // Mapeamos los datos al formato que entiende Choices.js
+        const opciones = tecnicos.map(t => ({
+            value: t.idUsuario,
+            label: t.Nombre
+        }));
+
+        // Limpiamos y seteamos las opciones usando la librería
+        choicesTecnicos.clearChoices();
+        choicesTecnicos.setChoices([
+            { value: '', label: 'Seleccionar técnico', selected: true, disabled: true, placeholder: true },
+            ...opciones
+        ], 'value', 'label', true);
+
     } catch (error) {
         showToast('Error al cargar técnicos', "No se pudo conectar al servidor.", 'destructive');
     }
 }
 
+
 async function fetchTasks() {
     try {
         const response = await fetch('/api/actividades');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const actividades = await response.json();
 
-        const tasksData = await response.json();
-        state.tasks = tasksData;
+        // Se guardan las actividades en estado gloabal
+        Object.assign(state.tasks, actividades);
+
+        // Renderizamos los acordeones con las actividades
         renderAccordions();
-    } catch (error) {
-        showToast('Error al cargar actividades', "No se pudo cargar el checklist.", 'destructive');
     }
-}
-
-// FUNCIONES DE RENDERIZADO
-
-
-// Función genérica para llenar los <select>
-function renderSelect(selectElement, data, placeholder, valueKey, textKey) {
-    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-    data.forEach(item => {
-        selectElement.innerHTML += `<option value="${item[valueKey]}">${item[textKey]}</option>`;
-    });
+    catch (error) {
+        console.error('Error al cargar actividades: ', error);
+        showToast('Error al cargar actividades', "No se pudo conectar al servidor.", 'destructive');
+    }
 }
 
 function renderAccordions() {

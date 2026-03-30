@@ -881,6 +881,10 @@ header#main-header {
     font-size: 0.875rem;
 }
 
+.choices__list--dropdown {
+    z-index: 100 !important;
+}
+
 
 /* =========================================================
    MODO MANTENIMIENTO ACTIVO 
@@ -963,5 +967,943 @@ body.mantenimiento-activo .grid.gap-4:has(#troquelesSelect) {
     /* Choices.js debe ajustarse al ancho del contenedor */
     .choices {
         width: 100% !important;
+    }
+}
+
+
+
+
+
+
+
+/* ---- ESTILOS DE QR MANAGER ---- */
+
+/* Ajustes generales */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.toolbar-actions { display: flex; gap: 0.5rem; }
+
+.search-input {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    width: 240px;
+    outline: none;
+    transition: all 0.15s;
+}
+
+.search-input:focus {
+    border-color: #ff5c35;
+    box-shadow: 0 0 0 3px rgba(255, 92, 53, 0.1);
+}
+
+.counter-badge {
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+}
+
+/* Botones de la barra de herramientas */
+.btn-toolbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-outline {
+    background: white; border: 1px solid #d1d5db; color: #4b5563;
+}
+
+.btn-outline:hover {
+    background: #f9fafb; color: #373a36; border-color: #9ca3af;
+}
+
+.btn-primary {
+    background: #ff5c35; border: 1px solid #ff5c35; color: white;
+}
+
+.btn-primary:hover {
+    background: #e04b28;
+}
+
+/* Tarjetas Minimalistas */
+.grid-qr {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+
+.qr-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.qr-card:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+}
+
+.qr-label {
+    font-size: 1rem; font-weight: 700; color: #373a36; text-align: center;
+}
+
+.qr-image-wrapper {
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.qr-card img {
+    width: 130px; height: 130px; image-rendering: pixelated; mix-blend-mode: multiply;
+}
+
+.qr-actions {
+    display: flex; gap: 0.5rem; width: 100%;
+}
+
+.btn-action {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+    padding: 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; border: none;
+    background: #f3f4f6; color: #6b7280;
+}
+
+.btn-action:hover { background: #e5e7eb; color: #373a36; }
+
+/* Efecto naranja sutil al pasar el mouse por el botón de abrir */
+.btn-action.action-open:hover { background: #fff0ec; color: #ff5c35; }
+
+/* Responsive Móvil y Tablet pequeña (hasta 640px) */
+@media (max-width: 640px) {
+    /* Fuerza 2 columnas simétricas */
+    .grid-qr { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 0.75rem; 
+    }
+    
+    /* Mantiene la tarjeta en columna (imagen arriba, texto abajo) */
+    .qr-card { 
+    flex-direction: column; 
+    padding: 0.75rem; 
+    }
+    
+    .qr-image-wrapper { 
+    width: 100%; 
+    margin: 0.5rem 0; 
+    padding: 0.5rem; 
+    }
+    
+    /* Hace el QR un poco más pequeño para que quepan bien dos */
+    .qr-card img { 
+    width: 90px; 
+    height: 90px; 
+    }
+    
+    .qr-card-content { 
+    display: flex; 
+    flex-direction: column; 
+    width: 100%; 
+    }
+    
+    .qr-label { 
+    text-align: center; 
+    font-size: 0.85rem; 
+    margin-bottom: 0.5rem; 
+    }
+    
+    /* Oculta el texto de Descargar/Abrir y deja solo el ícono */
+    .btn-action span { 
+    display: none !important; 
+    }
+    
+    /* Ajuste del buscador y los botones de arriba */
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .search-input { width: 100%; }
+    .toolbar-actions button { flex: 1; justify-content: center; }
+}
+
+.loading-container { display: flex; flex-direction: column; align-items: center; padding: 4rem 0; gap: 1rem; }
+.spinner { width: 40px; height: 40px; border: 3px solid #ffedd5; border-top-color: #ff5c35; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Impresión limpia */
+@media print {
+    body { background: white !important; }
+    header, .toolbar, .qr-actions { display: none !important; }
+    .grid-qr { grid-template-columns: repeat(4, 1fr) !important; gap: 1rem !important; }
+    .qr-card { break-inside: avoid; border: 1px solid #d1d5db !important; padding: 1rem !important; box-shadow: none !important; }
+    .qr-image-wrapper { background: white !important; margin: 0.5rem 0 !important; }
+}
+
+
+
+
+
+
+
+
+
+/* ---- ESTILOS DE HISTORIAL ----*/
+/* === AJUSTES GLOBALES PARA SCROLL INTERNO === */
+body {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Evita el scroll de toda la página */
+    margin: 0;
+}
+
+/* Ocultar header siempre */
+.header-desktop {
+    display: none !important;
+}
+
+/* === Estilos del Historial === */
+.historial-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; 
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.5rem; /* Margen igual arriba, abajo y a los lados */
+    gap: 0.5rem; /* Mismo espaciado exacto entre el botón y la tabla */
+}
+
+.btn-volver {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.25rem 0;
+    transition: color 0.15s;
+}
+
+/* Tabla */
+.tabla-card {
+    background: white;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0; /* Crítico para el scroll interno */
+}
+
+.tabla-header {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tabla-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #373a36;
+    margin: 0;
+}
+
+.tabla-header .total-badge {
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+}
+
+.tabla-wrapper {
+    flex: 1;
+    /* SOLUCIÓN AL SALTO: Fuerza a que el carril del scroll siempre exista, evitando que la tabla cambie de ancho al paginar */
+    overflow-y: scroll; 
+    overflow-x: hidden;
+    min-height: 0 !important;
+    position: relative; 
+    
+    /* SOLUCIÓN AL HUECO BLANCO: Dibujamos el fondo y el borde del header en la zona transparente del scrollbar */
+    background-color: white;
+    background-image: 
+    linear-gradient(#e5e7eb, #e5e7eb), /* Borde gris inferior (box-shadow) */
+    linear-gradient(#f9fafb, #f9fafb); /* Fondo gris del header */
+    background-size: 
+    100% 1px,  
+    100% 45px; 
+    background-position: 
+    0 44px, /* Posiciona la línea gris justo donde termina el header */
+    0 0; 
+    background-repeat: no-repeat;
+}
+
+/* Refinando la barra de scroll de la tabla */
+.tabla-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+.tabla-wrapper::-webkit-scrollbar-track {
+    background: transparent; 
+    margin-top: 45px;
+    margin-bottom: 4px;
+}
+.tabla-wrapper::-webkit-scrollbar-thumb {
+    background: #d1d5db; 
+    border-radius: 4px;
+}
+.tabla-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af; 
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+th:nth-child(1) { width: 22%; } /* Troquel */
+th:nth-child(2) { width: 28%; } /* Técnico */
+th:nth-child(3) { width: 28%; } /* Fecha */
+th:nth-child(4) { width: 22%; } /* Duración */
+
+thead th {
+    position: sticky;
+    top: 0; /* Lo ancla a la parte superior */
+    z-index: 20; /* Lo mantiene por encima de las filas */
+    background: #f9fafb; /* OBLIGATORIO: Fondo sólido para que las filas no se vean por transparencia */
+    height: 45px;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    
+    /* En tablas sticky, es mejor usar box-shadow en lugar de border-bottom para que la línea no desaparezca al hacer scroll */
+    box-shadow: 0 1px 0 #e5e7eb; 
+    white-space: nowrap;
+}
+
+/* Extensión visual para tapar el hueco sobre el scrollbar */
+thead th:last-child::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: -8px; /* Lo empujamos hacia la derecha (el ancho exacto de tu scroll) */
+    width: 8px; /* Cubre exactamente el hueco */
+    background: #f9fafb; /* Copia el fondo del header */
+    box-shadow: 0 1px 0 #e5e7eb; /* Copia la línea gris inferior */
+    z-index: 25; /* Lo mantiene por encima de cualquier cosa */
+}
+
+tbody td {
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    max-width: 130px !important;
+}
+
+tbody tr {
+    cursor: pointer;
+    transition: background 0.15s;
+    height: 48px !important;
+}
+
+tbody tr:hover {
+    background: #fff7f5;
+}
+
+tbody tr:active {
+    background: #fff0ec;
+}
+
+.duracion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #f0fdf4;
+    color: #15803d;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap; /* Mantenemos este en nowrap para que el badge no se rompa */
+}
+
+/* Paginación */
+.pagination {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center; /* Centramos todo para un look más simétrico */
+    align-items: center;
+    padding: 0.35rem 1rem;;
+    border-top: 1px solid #f3f4f6; /* Línea súper sutil y clara */
+    background: white; /* Continuidad con el fondo de la tabla */
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.pagination-info {
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem; /* Más espacio para respirar entre botones */
+}
+
+button.btn-page {
+    height: 2.25rem;
+    width: 2.25rem;
+    border: none; /* Adiós a los bordes de caja */
+    background: transparent;
+    border-radius: 50%; /* Botones redondos y modernos */
+    color: #9ca3af; /* Gris suave por defecto */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+}
+
+button.btn-page:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+span#page-indicator {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563; /* Un gris un poco más oscuro para lectura */
+    background: transparent;
+    border: none;
+    min-width: 4rem; /* Evita que los botones salten al cambiar de 1 a 10 */
+    text-align: center;
+    letter-spacing: 0.025em;
+    user-select: none;
+}
+
+/* === Modal de Detalle === */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-panel {
+    background: white;
+    border-radius: 0.2rem;
+    width: 100%;
+    max-width: 700px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-overlay.active .modal-panel {
+    transform: translateY(0) scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.5rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+.modal-header h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #373a36;
+    margin: 0;
+}
+
+.modal-header .meta-text {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    padding: 0.25rem;
+    border-radius: 0.375rem;
+    transition: all 0.15s;
+}
+
+.modal-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.modal-body {
+    padding: 1.25rem 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: transparent;
+    margin-block: 0.5rem;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+.modal-subheader {
+    padding: 0.5rem 1.5rem 0 1.5rem;
+    flex-shrink: 0;
+    background: white;
+    z-index: 10;
+}
+
+.info-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    margin-bottom: 0;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+    justify-content: space-between;
+    overflow-x: auto;
+}
+
+.info-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    gap: 0.125rem;
+}
+
+.info-item .info-label {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: #9ca3af;
+    white-space: nowrap;
+}
+
+.info-item .info-value {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+details.tipo-section {
+    margin-bottom: 1rem;
+}
+
+details.tipo-section summary {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #373a36;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    list-style: none;
+    list-style-type: none;
+    transition: color 0.15s ease;
+}
+
+details.tipo-section summary:hover {
+    color: #272727;
+}
+
+details.tipo-section summary::-webkit-details-marker {
+    display: none;
+}
+
+details.tipo-section summary::marker {
+    display: none;
+    content: "";
+}
+
+.tipo-section-icon {
+    color: #272727;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+details.tipo-section[open] .tipo-section-icon {
+    transform: rotate(180deg);
+    color: #272727;
+}
+
+.tipo-section-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.actividad-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.actividad-row:last-child {
+    border-bottom: none;
+}
+
+.estado-completado { color: #15803d; }
+.estado-no-completado { color: #b91c1c; }
+.estado-no-aplica { color: #6b7280; }
+
+.actividad-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.actividad-nombre {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-state svg {
+    width: 4rem;
+    height: 4rem;
+    color: #d1d5db;
+    margin: 0 auto 1rem;
+}
+
+.empty-state h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+
+.empty-state p {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+.skeleton-row {
+    display: flex;
+    gap: 1rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.skeleton-cell {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.375rem;
+    height: 1rem;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.th-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.25rem 0.5rem;
+    margin-left: -0.5rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.15s;
+}
+
+.th-content:hover {
+    background-color: #e5e7eb;
+    color: #373a36;
+}
+
+.icon-filter {
+    width: 14px;
+    height: 14px;
+    color: #9ca3af;
+    transition: color 0.15s;
+}
+
+.th-filter.active-filter .icon-filter {
+    color: #ff5c35;
+}
+
+.th-filter.active-filter .th-content {
+    color: #ff5c35;
+}
+
+/* Popups de filtro */
+.filter-popup {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.75rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    width: 260px;
+    z-index: 100;
+    font-weight: normal;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #374151;
+    cursor: default;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: all 0.2s ease;
+    transform-origin: top center;
+}
+
+.filter-popup.popup-right {
+    left: auto;
+    right: 0;
+}
+
+.filter-popup-header {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #111827;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 0.5rem;
+}
+
+.filter-popup-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.filter-popup-actions button {
+    flex: 1;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.8125rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.btn-apply {
+    background: #ff5c35;
+    color: white;
+    border: 1px solid #ff5c35;
+}
+
+.btn-apply:hover {
+    background: #e04b28;
+}
+
+.btn-clear {
+    background: white;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.btn-clear:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.filter-popup .choices {
+    margin-bottom: 0;
+}
+
+.filter-popup .choices__inner {
+    background-color: #f9fafb; /* Un gris súper tenue */
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    min-height: 38px;
+}
+
+.filter-popup.popup-hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.filter-popup::before {
+    content: '';
+    position: absolute;
+    top: -7px; /* Bajamos la flecha milimétricamente para que corte el borde del menú */
+    left: 24px;
+    width: 14px;
+    height: 14px;
+    background-color: white; /* Fundamental para tapar la línea de abajo */
+    border-top: 1px solid #e5e7eb;
+    border-left: 1px solid #e5e7eb;
+    transform: rotate(45deg);
+    border-top-left-radius: 2px;
+    z-index: 10; /* Nos aseguramos de que tape el borde superior del .filter-popup */
+}
+
+.filter-popup.popup-right::before {
+    left: auto;
+    right: 24px;
+}
+
+/* --- Ajustes específicos para Tablet / Pantallas medianas --- */
+@media (max-width: 900px) {
+    .filter-popup {
+        width: 280px; /* Un poco más ancho para que respiren los inputs de Flatpickr */
+    }
+    
+    /* Evitamos que el popup de la derecha se salga de la pantalla */
+    .filter-popup.popup-right {
+        right: -20px; /* Lo centramos un poco más respecto a la columna */
+    }
+    
+    /* Movemos la flecha para que siga apuntando al icono del embudo */
+    .filter-popup.popup-right::before {
+        right: 44px; 
+    }
+}
+
+.date-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.date-input:focus {
+    border-color: #ff5c35;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tipo-section-content {
+    grid-template-columns: 1fr;
+    }
+
+    .tabla-wrapper {
+    font-size: 0.8125rem;
+    }
+
+    thead th,
+    tbody td {
+    padding: 0.625rem 0.75rem;
+    }
+
+    .pagination {
+    flex-direction: column;
+    gap: 0.5rem;
+    }
+}
+
+
+
+/* ---- ESTILOS DE INDEX ---- */
+@media (max-width: 500px) {
+    #header-date-container {
+    display: none !important;
     }
 }
