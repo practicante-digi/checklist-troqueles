@@ -325,13 +325,6 @@
     }
 }
 
-/* Estilos para móvil */
-@media (max-width: 450px) {
-    .view-comment-btn {
-        margin: 0.5rem 0 0 0;
-        width: 100%;
-    }
-}
 
 /* Estilos responsivos para móviles */
 @media (max-width: 450px) {
@@ -364,19 +357,6 @@
     }
 }
 
-/* Ajuste para mostrar la hora debajo de la fecha en dispositivos móviles */
-@media (max-width: 450px) {
-    #header-date {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    #header-date span {
-        margin-left: 0;
-        /* Eliminar margen izquierdo en móvil */
-    }
-}
 
 .accordion-trigger.open .accordion-chevron {
     transform: rotate(180deg);
@@ -707,26 +687,6 @@
     /* Ícono blanco para contraste */
 }
 
-/* Ajustes responsivos para el toast */
-@media (max-width: 450px) {
-    #toast-icon-container {
-        height: 2.5rem;
-        /* Tamaño más pequeño en móvil */
-        width: 2.5rem;
-        /* Tamaño más pequeño en móvil */
-        background-color: #10B981;
-        /* Verde consistente */
-    }
-
-    #toast-icon {
-        height: 1.25rem;
-        /* Ícono más pequeño en móvil */
-        width: 1.25rem;
-        /* Ícono más pequeño en móvil */
-    }
-
-    /* Ajustes adicionales específicos para móviles */
-}
 
 /* Header Base */
 header#main-header {
@@ -1904,13 +1864,6 @@ details.tipo-section[open] .tipo-section-icon {
 }
 
 
-
-/* ---- ESTILOS DE INDEX ---- */
-@media (max-width: 500px) {
-    #header-date-container {
-        display: none !important;
-    }
-}
 
 /* === QR Manager: toolbar fija, solo el grid hace scroll === */
 #tab-content-qrs:not(.hidden) {

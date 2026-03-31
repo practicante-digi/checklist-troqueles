@@ -1,4 +1,4 @@
-import { state, saveStateToStorage } from '../../state.js';
+import { state, saveStateToStorage } from '../core/state.js';
 
 /**
  * Callback que se dispara cuando el usuario marca/desmarca una tarea del checklist.

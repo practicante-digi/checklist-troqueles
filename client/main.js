@@ -1,6 +1,6 @@
-import { state, saveStateToStorage, loadStateFromStorage, clearStateStorage } from './state.js';
+import { state, saveStateToStorage, loadStateFromStorage, clearStateStorage } from './js/core/state.js';
 import { fetchTroqueles, fetchTecnicos, fetchActividades, apiIniciarMantenimiento, apiFinalizarMantenimiento, apiCancelarMantenimiento } from './js/api/api.js';
-import { $, showToast, renderAccordions } from './ui.js';
+import { $, showToast, renderAccordions } from './js/core/ui.js';
 import { startTimer, restoreTimer, stopTimer } from './js/components/timer.js';
 import { setHeaderInfo, updateHeaderImage, applyAntiFlicker } from './js/components/header.js';
 import { handleTaskCheckboxChange, checkSectionCompletion } from './js/components/accordion.js';
@@ -162,7 +162,7 @@ async function handleStartMaintenance() {
         state.currentMaintenanceId = result.idMantenimiento;
 
         const troquelData = choicesTroqueles.getValue();
-        state.selectedTroquelLabel = troquelData?.label || state.selectedTroquel;
+        state.selectedTroquelLabel = troquelData?.customProperties?.codigo || troquelData?.label || state.selectedTroquel;
         state.selectedTecnicoLabel = choicesTecnicos.getValue()?.label || state.selectedTecnico;
         state.selectedTroquelImage = troquelData?.customProperties?.imagenUrl || "";
 
@@ -204,7 +204,7 @@ function restaurarMantenimiento() {
     document.body.classList.add('mantenimiento-activo');
 
     const troquelData = choicesTroqueles.getValue();
-    const troquelLabel = troquelData?.label;
+    const troquelLabel = troquelData?.customProperties?.codigo || troquelData?.label;
     const tecnicoLabel = choicesTecnicos.getValue()?.label;
 
     state.selectedTroquelImage = troquelData?.customProperties?.imagenUrl || state.selectedTroquelImage || "";

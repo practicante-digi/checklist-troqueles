@@ -72,9 +72,7 @@ app.use('/api/actividades', actividadRoutes);
 app.use('/api/historial', historialRoutes);
 
 
-app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, '../client/dashboard.html')));
-app.get('/qr-manager', (req, res) => res.sendFile(path.join(__dirname, '../client/qr-manager.html')));
-app.get('/historial', (req, res) => res.sendFile(path.join(__dirname, '../client/historial.html')));
+app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, '../client/pages/dashboard.html')));
 
 /// --- Inicia el Servidor HTTPS ---
 const httpsOptions = {

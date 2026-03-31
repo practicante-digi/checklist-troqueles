@@ -1,5 +1,5 @@
-import { state } from '../../state.js';
-import { $ } from '../../ui.js';
+import { state } from '../core/state.js';
+import { $ } from '../core/ui.js';
 
 let timerInterval;
 
