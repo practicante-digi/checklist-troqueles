@@ -1900,3 +1900,10 @@ details.tipo-section[open] .tipo-section-icon {
 #tab-content-qrs #qr-grid::-webkit-scrollbar-track { background: transparent; }
 #tab-content-qrs #qr-grid::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
 #tab-content-qrs #qr-grid::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* Forzar que todos los placeholders de Choices.js sean texto sólido (#373a36) para que coincidan visualmente */
+.choices__inner .choices__placeholder {
+    opacity: 1 !important;
+    color: #6b7280 !important; /* Gris elegante (Tailwind text-gray-500) */
+    font-weight: 400 !important; /* Peso normal de fuente */
+}

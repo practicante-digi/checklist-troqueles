@@ -1,6 +1,6 @@
 import { state, saveStateToStorage, loadStateFromStorage, clearStateStorage } from './js/core/state.js';
 import { fetchTroqueles, fetchTecnicos, fetchActividades, apiIniciarMantenimiento, apiFinalizarMantenimiento, apiCancelarMantenimiento } from './js/api/api.js';
-import { $, showToast, renderAccordions } from './js/core/ui.js';
+import { $, showToast, renderAccordions, getChoicesTroquelConfig, formatTroquelOptions } from './js/core/ui.js';
 import { startTimer, restoreTimer, stopTimer } from './js/components/timer.js';
 import { setHeaderInfo, updateHeaderImage, applyAntiFlicker } from './js/components/header.js';
 import { handleTaskCheckboxChange, checkSectionCompletion } from './js/components/accordion.js';
@@ -46,59 +46,8 @@ async function initApp() {
     // Ejecutamos switchTab aquí mismo (antes del bloque async) para esconder rápido el formulario en el DOM
     switchTab(initialTab);
 
-    // A. Inicializar Choices.js
-    choicesTroqueles = new Choices(troquelesSelect, {
-        searchEnabled: true,
-        // Choices.js busca en `label` por defecto — ponemos código + cliente ahí
-        searchPlaceholderValue: 'Buscar troquel o cliente...',
-        itemSelectText: '',
-        shouldSort: false,
-        allowHTML: true,
-        placeholder: true,
-        callbackOnCreateTemplates: function (template) {
-            return {
-                // Template del ítem seleccionado: muestra solo el código
-                item: function (classNames, data) {
-                    const codigo = data.customProperties?.codigo || data.label;
-                    const placeholderClass = data.placeholder ? classNames.placeholder : '';
-                    return template(`
-                        <div class="${classNames.item} ${data.highlighted ? classNames.highlightedState : classNames.itemSelectable} ${placeholderClass}" data-item data-id="${data.id}" data-value="${data.value}" ${data.active ? 'aria-selected="true"' : ''} ${data.disabled ? 'aria-disabled="true"' : ''}>
-                            ${codigo}
-                        </div>
-                    `);
-                },
-                // Template del dropdown: tarjeta completa con imagen y cliente
-                choice: function (classNames, data) {
-                    if (data.value === '') return template(`<div style="display: none;" data-choice data-value="${data.value}"></div>`);
-
-                    const cliente = data.customProperties?.cliente || 'Sin cliente asignado';
-                    const codigo = data.customProperties?.codigo || data.label;
-                    const tieneDemanda = data.customProperties?.tieneDemanda;
-                    const imagenUrl = data.customProperties?.imagenUrl || null;
-
-                    const badgeDemanda = tieneDemanda === 0 ? `<span style="background-color: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; white-space: nowrap;">SIN DEMANDA</span>` : '';
-                    const renderThumbnail = imagenUrl
-                        ? `<img src="${imagenUrl}" alt="Troquel" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display: none; color: #9ca3af; font-size: 1.25rem;"></span>`
-                        : `<span style="color: #9ca3af; font-size: 1.25rem;"></span>`;
-
-                    return template(`
-                        <div class="${classNames.item} ${classNames.itemChoice} ${classNames.itemSelectable}" data-select-text="${this.config.itemSelectText}" data-choice data-id="${data.id}" data-value="${data.value}" data-choice-selectable>
-                            <div style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; box-sizing: border-box;">
-                                <div style="flex-shrink: 0; width: 64px; height: 64px; background-color: #f3f4f6; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; overflow: hidden;">${renderThumbnail}</div>
-                                <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                                        <span style="font-weight: 700; color: #1f2937; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${codigo}</span>
-                                        ${badgeDemanda}
-                                    </div>
-                                    <span style="font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">${cliente}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `);
-                }
-            };
-        }
-    });
+    // Inicializar Choices.js
+    choicesTroqueles = new Choices(troquelesSelect, getChoicesTroquelConfig(false));
 
     choicesTecnicos = new Choices(techSelect, {
         searchEnabled: false,
@@ -106,24 +55,14 @@ async function initApp() {
         shouldSort: false,
     });
 
-    // B. Traer datos de la API (Toma varios milisegundos)
+    // Traer datos de la API
     try {
         const [troquelesData, tecnicosData, actividadesData] = await Promise.all([
             fetchTroqueles(), fetchTecnicos(), fetchActividades()
         ]);
 
-        const opcionesTroqueles = troquelesData.map(t => ({
-            value: String(t.idTroquel),
-            // label = "CT-01 Caterpillar Inc" → Choices.js busca aquí (código + cliente juntos)
-            label: `${t.Codigo}${t.Cliente ? ' ' + t.Cliente : ''}`,
-            customProperties: {
-                codigo: t.Codigo,          // para el template `item` (seleccionado)
-                cliente: t.Cliente,
-                tieneDemanda: t.TieneDemanda,
-                imagenUrl: t.ClaveMaterial ? `/api/troqueles/imagen/${t.ClaveMaterial}` : null,
-            }
-        }));
-        choicesTroqueles.setChoices([{ value: '', label: 'Seleccionar troquel', selected: true, disabled: true, placeholder: true }, ...opcionesTroqueles], 'value', 'label', true);
+        const opcionesTroqueles = formatTroquelOptions(troquelesData, 'idTroquel', false);
+        choicesTroqueles.setChoices(opcionesTroqueles, 'value', 'label', true);
 
         const opcionesTecnicos = tecnicosData.map(t => ({ value: String(t.idUsuario), label: t.Nombre }));
         choicesTecnicos.setChoices([{ value: '', label: 'Seleccionar técnico', selected: true, disabled: true, placeholder: true }, ...opcionesTecnicos], 'value', 'label', true);

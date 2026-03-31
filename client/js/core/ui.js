@@ -7,37 +7,83 @@ export const $$ = (selector) => document.querySelectorAll(selector);
 // Contenedor principal del UI (Acordeón)
 const accordionContainer = $('#accordion-container');
 
-// --- PLANTILLAS DE CHOICES.JS ---
-export const choicesTemplates = {
-    troquel: (template, data) => {
-        if (data.value === '') return template(`<div style="display: none;" data-choice data-value="${data.value}"></div>`);
-        const cliente = data.customProperties?.cliente || 'Sin cliente asignado';
-        const tieneDemanda = data.customProperties?.tieneDemanda;
-        const imagenUrl = data.customProperties?.imagenUrl || null; 
-        
-        const badgeDemanda = tieneDemanda === 0 ? `<span style="background-color: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; white-space: nowrap;">SIN DEMANDA</span>` : '';
-        const renderThumbnail = imagenUrl ? `<img src="${imagenUrl}" alt="Troquel" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display: none; color: #9ca3af; font-size: 1.25rem;">⚙️</span>` : `<span style="color: #9ca3af; font-size: 1.25rem;">⚙️</span>`;
-
-        return template(`
-            <div class="choices-item-custom" data-choice data-id="${data.id}" data-value="${data.value}" data-choice-selectable>
-                <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-                    <div style="flex-shrink: 0; width: 42px; height: 42px; background-color: #f3f4f6; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; overflow: hidden;">${renderThumbnail}</div>
-                    <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                            <span style="font-weight: 700; color: #1f2937; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.label}</span>
-                            ${badgeDemanda}
+// --- PLANTILLAS Y CONFIGURACIÓN REUSABLE DE CHOICES.JS ---
+export function getChoicesTroquelConfig(isFilter = false) {
+    return {
+        searchEnabled: true,
+        searchFields: ['label', 'value', 'customProperties.codigo', 'customProperties.cliente', 'customProperties.numeroParte'],
+        searchPlaceholderValue: 'Buscar troquel, cliente o # de parte...',
+        itemSelectText: '',
+        shouldSort: false,
+        allowHTML: true,
+        placeholder: true,
+        callbackOnCreateTemplates: function (template) {
+            return {
+                // Template del ítem seleccionado: muestra solo el código
+                item: function (classNames, data) {
+                    const codigo = data.customProperties?.codigo || data.label;
+                    const isPlaceholder = data.placeholder || data.value === '';
+                    const placeholderClass = isPlaceholder ? 'choices__placeholder' : '';
+                    const customStyles = isPlaceholder ? 'opacity: 1; font-weight: 500; color: #373a36;' : '';
+                    return template(`
+                        <div class="${classNames.item} ${data.highlighted ? classNames.highlightedState : classNames.itemSelectable} ${placeholderClass}" style="${customStyles}" data-item data-id="${data.id}" data-value="${data.value}" ${data.active ? 'aria-selected="true"' : ''} ${data.disabled ? 'aria-disabled="true"' : ''}>
+                            ${codigo}
                         </div>
-                        <span style="font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">${cliente}</span>
-                    </div>
-                </div>
-            </div>
-        `);
-    },
-    tecnico: (template, data) => {
-        if (data.value === '') return template(`<div style="display: none;" data-choice data-value="${data.value}"></div>`);
-        return template(`<div data-choice data-id="${data.id}" data-value="${data.value}" data-choice-selectable>${data.label}</div>`);
-    }
-};
+                    `);
+                },
+                // Template del dropdown: tarjeta completa con imagen y cliente
+                choice: function (classNames, data) {
+                    if (data.value === '') return template(`<div style="display: none;" data-choice data-value="${data.value}"></div>`);
+
+                    const cliente = data.customProperties?.cliente || 'Sin cliente asignado';
+                    const codigo = data.customProperties?.codigo || data.label;
+                    const tieneDemanda = data.customProperties?.tieneDemanda;
+                    const imagenUrl = data.customProperties?.imagenUrl || null;
+                    const numeroParte = data.customProperties?.numeroParte || '';
+
+                    const badgeDemanda = tieneDemanda === 0 ? `<span style="background-color: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; white-space: nowrap;">SIN DEMANDA</span>` : '';
+                    const renderThumbnail = imagenUrl
+                        ? `<img src="${imagenUrl}" alt="Troquel" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display: none; color: #9ca3af; font-size: 1.25rem;">⚙️</span>`
+                        : `<span style="color: #9ca3af; font-size: 1.25rem;">⚙️</span>`;
+
+                    const renderNumeroParte = numeroParte ? `<span style="font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">${numeroParte}</span>` : '';
+
+                    return template(`
+                        <div class="${classNames.item} ${classNames.itemChoice} ${classNames.itemSelectable}" data-select-text="${this.config.itemSelectText}" data-choice data-id="${data.id}" data-value="${data.value}" data-choice-selectable>
+                            <div style="display: flex; align-items: center; gap: 12px; width: 100%; padding: ${isFilter ? '4px 8px' : '8px 12px'}; box-sizing: border-box;">
+                                <div style="flex-shrink: 0; width: ${isFilter ? '48px' : '64px'}; height: ${isFilter ? '48px' : '64px'}; background-color: #f3f4f6; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; overflow: hidden;">${renderThumbnail}</div>
+                                <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                        <span style="font-weight: 700; color: #1f2937; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${codigo}</span>
+                                        ${badgeDemanda}
+                                    </div>
+                                    <span style="font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">${cliente}</span>
+                                    ${renderNumeroParte}
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+            };
+        }
+    };
+}
+
+export function formatTroquelOptions(troquelesData, valueField = 'idTroquel', filterMode = false) {
+    const defaultOption = { value: '', label: filterMode ? 'Todos los troqueles' : 'Seleccionar troquel', selected: true, disabled: !filterMode, placeholder: true };
+    const options = troquelesData.map(t => ({
+        value: String(t[valueField]),
+        label: `${t.Codigo}${t.Cliente ? ' ' + t.Cliente : ''}${t.ClaveMaterial ? ' ' + t.ClaveMaterial : ''}`,
+        customProperties: {
+            codigo: t.Codigo,
+            cliente: t.Cliente,
+            tieneDemanda: t.TieneDemanda,
+            imagenUrl: t.ClaveMaterial ? `/api/troqueles/imagen/${t.ClaveMaterial}` : null,
+            numeroParte: t.ClaveMaterial,
+        }
+    }));
+    return [defaultOption, ...options];
+}
 
 // --- CONTROL DE VISTAS ---
 // Una sola función para manejar qué se ve y qué no

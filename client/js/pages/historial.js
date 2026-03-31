@@ -1,3 +1,4 @@
+import { getChoicesTroquelConfig, formatTroquelOptions } from '../core/ui.js';
 
 let isDatepickerOpen = false;
 let currentPage = 1;
@@ -49,11 +50,9 @@ async function cargarTroqueles() {
     try {
         const res = await fetch('/api/troqueles');
         const data = await res.json();
-        const options = data.map(t => ({ value: t.Codigo, label: t.Codigo }));
-        choicesTroquel = new Choices(document.getElementById('filtro-troquel-head'), {
-            searchEnabled: true, itemSelectText: '', shouldSort: false, allowHTML: false,
-        });
-        choicesTroquel.setChoices(options, 'value', 'label', false);
+        const options = formatTroquelOptions(data, 'Codigo', true);
+        choicesTroquel = new Choices(document.getElementById('filtro-troquel-head'), getChoicesTroquelConfig(true));
+        choicesTroquel.setChoices(options, 'value', 'label', true);
     } catch (e) { console.error('Error cargando troqueles:', e); }
 }
 
