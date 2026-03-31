@@ -119,6 +119,13 @@
     background-color: #f9fafb;
 }
 
+.section-comment-textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: #d1d5db !important; /* Mantiene el mismo gris claro */
+    background-color: #f9fafb !important; /* Mantiene el mismo fondo */
+}
+
 .section-comment-textarea:disabled {
     background-color: #f3f4f6;
     cursor: not-allowed;
@@ -158,55 +165,77 @@
     background-color: #E5E7EB !important;
     color: #1F2937 !important;
 }
+/* --- Estilos para transiciones de los Modales (Confirmación y Cancelación) --- */
 
-/* Estilos para transiciones del modal */
-#confirmation-modal {
-    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(8px);
-}
-
-#confirmation-modal.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-
-#confirmation-modal:not(.hidden) {
-    opacity: 1;
+/* 1. Comportamiento base del fondo (Overlay) */
+#confirmation-modal,
+#cancel-confirmation-modal {
     visibility: visible;
+    opacity: 1;
+    /* Transición suave para el fondo oscuro y el blur */
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                backdrop-filter 0.4s ease,
+                background-color 0.4s ease;
+    
+    /* Desenfoque profesional */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(17, 24, 39, 0.45); /* bg-gray-900 con 45% opacidad */
 }
 
-/* Asegurar que el contenido del modal tenga una transición suave */
-#confirmation-modal>div {
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-        opacity 0.4s ease-out;
+/* 2. Sobrescribir el .hidden de Tailwind SOLO para estos modales */
+#confirmation-modal.hidden,
+#cancel-confirmation-modal.hidden {
+    display: flex !important; /* Mantenemos el flex para no romper la estructura */
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none; /* Evita clics fantasma cuando está oculto */
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    background-color: rgba(17, 24, 39, 0);
+}
+
+/* 3. Animación de la tarjeta blanca (Contenedor interno) */
+#confirmation-modal > div,
+#cancel-confirmation-modal > div {
+    /* Usamos un cubic-bezier tipo "spring" para un rebote súper elegante y sutil */
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.4s ease-out;
     transform-origin: center center;
+    will-change: transform, opacity;
 }
 
-#confirmation-modal.hidden>div {
-    transform: translateY(-30px) scale(0.95);
+/* Estado inicial (oculto): Ligeramente más pequeño y desplazado hacia abajo */
+#confirmation-modal.hidden > div,
+#cancel-confirmation-modal.hidden > div {
+    transform: translateY(20px) scale(0.95);
     opacity: 0;
 }
 
-#confirmation-modal:not(.hidden)>div {
+/* Estado final (visible): Tamaño original y en su lugar */
+#confirmation-modal:not(.hidden) > div,
+#cancel-confirmation-modal:not(.hidden) > div {
     transform: translateY(0) scale(1);
     opacity: 1;
 }
 
 /* Transiciones suaves para cambio de contenido del modal */
+/* Transiciones estáticas para cambio de contenido del modal (Sin movimiento) */
 #modal-content-summary,
 #modal-content-loading,
 #modal-content-success {
-    transition: all 0.4s ease-in-out;
+    transition: opacity 0.2s ease-in-out;
     opacity: 1;
-    transform: translateY(0);
+    /* Eliminamos el transform para que no se mueva */
 }
 
 #modal-content-summary.hidden,
 #modal-content-loading.hidden,
 #modal-content-success.hidden {
     opacity: 0;
-    transform: translateY(20px);
+    /* Eliminamos el transform: translateY(20px) que hacía que viniera de abajo */
+    display: none; /* Opcional: asegura que no estorbe el contenido oculto */
 }
 
 /* Animación para el spinner de carga */
@@ -282,17 +311,6 @@
         transform: scale(1);
         opacity: 1;
     }
-}
-
-/* Animación para el contenido de éxito */
-#modal-content-success h3,
-#modal-content-success p {
-    animation: fadeInUp 0.6s ease-out;
-    animation-fill-mode: both;
-}
-
-#modal-content-success p {
-    animation-delay: 0.2s;
 }
 
 @keyframes fadeInUp {
@@ -991,24 +1009,24 @@ body.mantenimiento-activo .grid.gap-4:has(#troquelesSelect) {
 .toolbar-actions { display: flex; gap: 0.5rem; }
 
 .search-input {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
     border: 1px solid #d1d5db;
     border-radius: 0.375rem;
     font-size: 0.875rem;
-    width: 240px;
+    flex: 1;        /* Se expande para llenar el espacio, deja sitio al badge */
+    min-width: 0;   /* Evita overflow en contenedores flex */
     outline: none;
     transition: all 0.15s;
 }
 
 .search-input:focus {
     border-color: #ff5c35;
-    box-shadow: 0 0 0 3px rgba(255, 92, 53, 0.1);
 }
 
 .counter-badge {
     background: #f3f4f6;
     color: #6b7280;
-    font-size: 0.75rem;
+    font-size: 1rem;
     font-weight: 600;
     padding: 0.25rem 0.75rem;
     border-radius: 999px;
@@ -1172,18 +1190,16 @@ body.mantenimiento-activo .grid.gap-4:has(#troquelesSelect) {
 
 
 /* ---- ESTILOS DE HISTORIAL ----*/
-/* === AJUSTES GLOBALES PARA SCROLL INTERNO === */
-body {
-    height: 100dvh;
+
+/* === El tab de historial ocupa todo el espacio disponible debajo del header === */
+/* :not(.hidden) evita que display:flex sobreescriba la clase hidden de Tailwind */
+#tab-content-historial:not(.hidden) {
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Evita el scroll de toda la página */
-    margin: 0;
-}
-
-/* Ocultar header siempre */
-.header-desktop {
-    display: none !important;
+    /* Ocupa desde donde termina el header hasta el fondo de la pantalla */
+    height: calc(100dvh - var(--header-height, 88px));
+    overflow: hidden;
+    min-height: 0;
 }
 
 /* === Estilos del Historial === */
@@ -1191,12 +1207,12 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 0; 
+    min-height: 0;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0.5rem; /* Margen igual arriba, abajo y a los lados */
-    gap: 0.5rem; /* Mismo espaciado exacto entre el botón y la tabla */
+    padding: 0.5rem;
+    gap: 0.5rem;
 }
 
 .btn-volver {
@@ -1251,41 +1267,26 @@ body {
 
 .tabla-wrapper {
     flex: 1;
-    /* SOLUCIÓN AL SALTO: Fuerza a que el carril del scroll siempre exista, evitando que la tabla cambie de ancho al paginar */
-    overflow-y: scroll; 
+    overflow-y: auto;
     overflow-x: hidden;
-    min-height: 0 !important;
-    position: relative; 
-    
-    /* SOLUCIÓN AL HUECO BLANCO: Dibujamos el fondo y el borde del header en la zona transparente del scrollbar */
+    min-height: 0;
+    position: relative;
     background-color: white;
-    background-image: 
-    linear-gradient(#e5e7eb, #e5e7eb), /* Borde gris inferior (box-shadow) */
-    linear-gradient(#f9fafb, #f9fafb); /* Fondo gris del header */
-    background-size: 
-    100% 1px,  
-    100% 45px; 
-    background-position: 
-    0 44px, /* Posiciona la línea gris justo donde termina el header */
-    0 0; 
-    background-repeat: no-repeat;
 }
 
-/* Refinando la barra de scroll de la tabla */
+/* Scrollbar sutil — en tablet suele ser overlay (sin hueco) */
 .tabla-wrapper::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 .tabla-wrapper::-webkit-scrollbar-track {
-    background: transparent; 
-    margin-top: 45px;
-    margin-bottom: 4px;
+    background: transparent;
 }
 .tabla-wrapper::-webkit-scrollbar-thumb {
-    background: #d1d5db; 
+    background: #d1d5db;
     border-radius: 4px;
 }
 .tabla-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af; 
+    background: #9ca3af;
 }
 
 table {
@@ -1301,9 +1302,9 @@ th:nth-child(4) { width: 22%; } /* Duración */
 
 thead th {
     position: sticky;
-    top: 0; /* Lo ancla a la parte superior */
-    z-index: 20; /* Lo mantiene por encima de las filas */
-    background: #f9fafb; /* OBLIGATORIO: Fondo sólido para que las filas no se vean por transparencia */
+    top: 0;
+    z-index: 20;
+    background: #f9fafb;
     height: 45px;
     color: #6b7280;
     font-size: 0.75rem;
@@ -1312,23 +1313,26 @@ thead th {
     letter-spacing: 0.05em;
     padding: 0.75rem 1rem;
     text-align: left;
-    
-    /* En tablas sticky, es mejor usar box-shadow en lugar de border-bottom para que la línea no desaparezca al hacer scroll */
-    box-shadow: 0 1px 0 #e5e7eb; 
+    box-shadow: 0 1px 0 #e5e7eb;
     white-space: nowrap;
 }
 
-/* Extensión visual para tapar el hueco sobre el scrollbar */
+/* Extiende el fondo del último th para cubrir el carril del scrollbar */
+thead th:last-child {
+    position: sticky;
+    right: 0;
+}
+
 thead th:last-child::after {
     content: '';
     position: absolute;
     top: 0;
+    right: -20px; /* cubre el scrollbar sin importar su ancho exacto */
     bottom: 0;
-    right: -8px; /* Lo empujamos hacia la derecha (el ancho exacto de tu scroll) */
-    width: 8px; /* Cubre exactamente el hueco */
-    background: #f9fafb; /* Copia el fondo del header */
-    box-shadow: 0 1px 0 #e5e7eb; /* Copia la línea gris inferior */
-    z-index: 25; /* Lo mantiene por encima de cualquier cosa */
+    width: 20px;
+    background: #f9fafb;
+    box-shadow: 0 1px 0 #e5e7eb;
+    z-index: 25;
 }
 
 tbody td {
@@ -1904,6 +1908,42 @@ details.tipo-section[open] .tipo-section-icon {
 /* ---- ESTILOS DE INDEX ---- */
 @media (max-width: 500px) {
     #header-date-container {
-    display: none !important;
+        display: none !important;
     }
 }
+
+/* === QR Manager: toolbar fija, solo el grid hace scroll === */
+#tab-content-qrs:not(.hidden) {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - var(--header-height, 88px));
+    overflow: hidden;
+    min-height: 0;
+}
+
+#tab-content-qrs > main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#tab-content-qrs .toolbar {
+    flex-shrink: 0;
+}
+
+#tab-content-qrs #qr-grid {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-bottom: 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+    align-content: start; /* Evita que las tarjetas se estiren para llenar el alto */
+}
+
+#tab-content-qrs #qr-grid::-webkit-scrollbar { width: 6px; }
+#tab-content-qrs #qr-grid::-webkit-scrollbar-track { background: transparent; }
+#tab-content-qrs #qr-grid::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+#tab-content-qrs #qr-grid::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
