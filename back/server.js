@@ -16,6 +16,7 @@ import mantenimientoRoutes from './routes/mantenimiento.routes.js';
 import usuarioRoutes from './routes/usuario.routes.js';
 import actividadRoutes from './routes/actividad.routes.js';
 import historialRoutes from './routes/historial.routes.js';
+import monitorRoutes from './routes/monitor.routes.js';
 
 // --- Configuración de Módulos ES para __dirname ---
 const __filename = fileURLToPath(import.meta.url);
@@ -42,7 +43,7 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.googleapis.com", "https://fonts.gstatic.com"],
             frameSrc: ["'self'", "https://app.powerbi.com", "https://*.powerbi.com"],
             connectSrc: ["'self'", "https://dc.services.visualstudio.com"],
@@ -70,6 +71,7 @@ app.use('/api/mantenimiento', mantenimientoRoutes);
 app.use('/api/users', usuarioRoutes);
 app.use('/api/actividades', actividadRoutes);
 app.use('/api/historial', historialRoutes);
+app.use('/api/monitor', monitorRoutes);
 
 
 app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, '../client/pages/dashboard.html')));

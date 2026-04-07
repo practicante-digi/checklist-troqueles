@@ -10,8 +10,9 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-  <!-- Flatpickr (para Historial) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <!-- ECharts para el Monitor Dinámico -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
   <!-- JSZip (para QR Manager) -->
@@ -144,9 +145,55 @@
     </template>
   </main>
 
-  <!-- Contenedor del Informe Power BI - Pantalla Completa -->
-  <div id="tab-content-informe" class="tab-content hidden fullscreen-powerbi">
-    <iframe id="power-bi-iframe" frameborder="0" allowfullscreen="true" class="w-full h-full"></iframe>
+  <!-- Contenedor del Monitor Dinámico de Mantenimiento -->
+  <div id="tab-content-informe" class="tab-content hidden">
+    <div class="monitor-dashboard-container">
+        <!-- Lado Izquierdo: Gráfico Horizontal interactivo -->
+        <div class="chart-section">
+            <div class="section-title">Estado de Troqueles</div>
+            <div id="chart-wrapper" class="monitor-chart-wrapper">
+                <div id="monitor-chart-container"></div>
+                <div id="monitor-bar-pointer" class="bar-pointer"></div>
+            </div>
+        </div>
+
+        <!-- Lado Derecho: Tarjeta Dinámica Focus -->
+        <div class="detail-section">
+            <div class="troquel-card" id="active-card">
+                <div class="card-header">
+                    <h2 id="monitor-card-title">Cargando...</h2>
+                    <div id="monitor-card-status-badge" style="display: none; align-items: center; padding: 0.4rem 0.8rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; transition: background 0.3s, color 0.3s;">
+                        <span id="monitor-card-status-icon" style="font-size: 1.1rem; margin-right: 4px;"></span> 
+                        <span id="monitor-card-status-text"></span>
+                    </div>
+                </div>
+
+                <div class="image-box">
+                    <img id="monitor-card-image" src="" alt="Imagen del Troquel">
+                </div>
+
+                <div class="data-group">
+                    <div class="data-label">Número de parte (Material)</div>
+                    <div class="data-value" id="monitor-card-material">--</div>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-block">
+                        <div class="data-label">Por producir</div>
+                        <div class="data-value text-red" id="monitor-card-por-producir">--</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="data-label">Producidas</div>
+                        <div class="data-value text-dark" id="monitor-card-producidas">--</div>
+                    </div>
+                </div>
+
+                <div class="timer-bar-container">
+                    <div class="timer-bar" id="monitor-timer-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
   </div>
 
   <!-- Contenedor del Historial de Mantenimientos -->

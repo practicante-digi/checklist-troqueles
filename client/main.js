@@ -387,13 +387,8 @@ async function switchTab(activeTab) {
 
     // Inicialización diferida (lazy) por tab
     if (activeTab === 'informe') {
-        const iframe = $('#power-bi-iframe');
-        const isMobile = ('ontouchstart' in window) || window.innerWidth <= 1280;
-        if (iframe && !iframe.src) {
-            iframe.src = isMobile
-                ? "https://app.powerbi.com/view?r=eyJrIjoiZjIxMGNjMGUtZTU4Ny00ZWQxLWIwMGQtZmQzYmQ3ZDU2MGYzIiwidCI6IjY0NWE3NDU1LTkzMGItNDk3Ni1iOTFiLTYzOTAxOGEwZGY5OCJ9"
-                : "https://app.powerbi.com/view?r=eyJrIjoiODY0OTQxNTItYzZjMS00ZDRkLWExYzgtMmE4ZjIzNzhlN2Y5IiwidCI6IjY0NWE3NDU1LTkzMGItNDk3Ni1iOTFiLTYzOTAxOGEwZGY5OCJ9";
-        }
+        const { initMonitor } = await import('./js/pages/monitor.js');
+        initMonitor();
     }
 
     if (activeTab === 'historial') {

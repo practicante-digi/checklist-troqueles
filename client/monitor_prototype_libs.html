@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototipo Monitor</title>
+    
+    <!-- Librería Apache ECharts (El motor gráfico más avanzado para personalización extrema) -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            color: #333;
+        }
+
+        .dashboard-container {
+            display: flex;
+            width: 100%;
+            max-width: 1400px; /* Ancho máximo para pantallas grandes */
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        /* Contenedores divididos exactamente a la mitad */
+        .chart-section, .table-section {
+            flex: 1; 
+            padding: 1.5rem;
+        }
+
+        .chart-section {
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: inline-block;
+        }
+
+        /* Estilos de la tabla a la derecha */
+        .table-wrapper {
+            max-height: 605px; /* Igual que el gráfico para tenerlo armónico */
+            overflow-y: auto;
+            padding-right: 5px; /* Pequeño margen para la barra de scroll */
+        }
+        
+        /* Modificando barra de scroll para estética limpia en webkit */
+        .table-wrapper::-webkit-scrollbar { width: 6px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+        .custom-table {
+            width: 100%;
+            /* 'separate' ayuda a que los bordes inferiores del thead sticky no se rompan */
+            border-collapse: separate; 
+            border-spacing: 0;
+            margin-top: 0;
+        }
+
+        .custom-table th, .custom-table td {
+            text-align: left;
+            /* Jugamos con este padding para tratar de acercarnos a la altura del gráfico de ApexCharts */
+            padding: 14px 14px; 
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.85rem;
+        }
+
+        .custom-table th {
+            font-weight: 600;
+            color: #444;
+            border-bottom: 2px solid rgba(255, 82, 82, 0.4);
+            /* Propiedades sticky */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #f4f6f8; /* Necesario para que no se transparente el texto al bajar por el scroll */
+        }
+        
+        .col-producidas {
+            border-left: 2px solid rgba(255, 82, 82, 0.4);
+            background-color: #e0e0e0;
+            text-align: center !important;
+        }
+        
+        .col-por-producir {
+            background-color: #f4f6f8;
+            text-align: center !important;
+        }
+
+        .custom-table tr:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <!-- El contenedor divide la pantalla en 2 -->
+    <div class="dashboard-container">
+        
+        <!-- Lado Izquierdo: Gráfico Horizontal -->
+        <div class="chart-section">
+            <div class="section-title">Estado de troqueles</div>
+            <div id="chart-container"></div>
+        </div>
+
+        <!-- Lado Derecho: Tabla Clásica con Scroll -->
+        <div class="table-section">
+            <div class="table-wrapper">
+                <table class="custom-table" id="data-table">
+                <thead>
+                    <tr>
+                        <th>Troquel</th>
+                        <th>Material</th>
+                        <th class="col-producidas">Producidas ▼</th>
+                        <th class="col-por-producir">Por producir</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Llenado Vía Javascript -->
+                </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Hacer el llamado a tu servidor Node.js
+                const response = await fetch('/api/monitor/datos');
+                if (!response.ok) throw new Error('Error al contactar al backend');
+                
+                // Estos son los datos reales recién calculados desde SQL!!
+                const rawData = await response.json();
+
+        // 1. CONFIGURACIÓN DEL GRÁFICO (APACHE ECHARTS)
+        // ECharts permite manipular independientemente el formato de CADA barra y etiqueta (algo crítico para tu solicitud de >90%).
+        const chartDom = document.getElementById('chart-container');
+        // Obligamos a empatar el alto con la tabla (aprox 570px)
+        chartDom.style.height = '570px';
+        const myChart = echarts.init(chartDom);
+        
+        // ECharts pinta de abajo hacia arriba en barras horizontales, extraemos el TOP 15 y los invertimos
+        const revData = [...rawData].slice(0, 15).reverse();
+
+        const option = {
+            grid: {
+                left: '2%',
+                right: '4%',
+                bottom: '1%',
+                top: '2%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                max: 100,
+                splitLine: { show: false },
+                axisLabel: { show: false },
+                axisTick: { show: false },
+                axisLine: { show: false }
+            },
+            yAxis: {
+                type: 'category',
+                data: revData.map(d => d.id),
+                axisLine: { show: false },
+                axisTick: { show: false },
+                axisLabel: {
+                    color: '#555',
+                    fontFamily: 'Segoe UI ',
+                    fontWeight: 600,
+                    fontSize: 15,
+                    margin: 15
+                }
+            },
+            series: [{
+                type: 'bar',
+                // Controlamos el grosor de las barras
+                barWidth: '40%',
+                // Esta propiedad mágica renderiza la "Pista gris" de fondo automáticamente sin tener que hacer un 'stacked chart'
+                showBackground: true,
+                backgroundStyle: {
+                    color: '#e9ecef',
+                    borderRadius: 6
+                },
+                // Configuramos los datos individuales y su lógica dinámica de etiqueta
+                data: revData.map(d => {
+                    const pct = d.percentage;
+                    // LÓGICA VITAL: Si es mayor a 88 (casi tocando el margen final), forzamos adentro y en blanco. Si no, afuera en oscuro.
+                    const isFull = pct > 88; 
+                    
+                    return {
+                        value: pct,
+                        itemStyle: {
+                            color: '#343a40', // Color oscuro de la barra
+                            borderRadius: 6
+                        },
+                        label: {
+                            show: true,
+                            // Magia de ECharts: Posición dinámica por dato!
+                            position: isFull ? 'insideRight' : 'right',
+                            distance: isFull ? 15 : 8,
+                            formatter: '{c}%',
+                            color: isFull ? '#ffffff' : '#333333',
+                            fontSize: 11,
+                            fontWeight: 700
+                        }
+                    };
+                }),
+                markLine: {
+                    symbol: 'none',
+                    data: [ { xAxis: 85 } ], // La línea de meta roja (85%)
+                    lineStyle: { color: 'rgba(255, 82, 82, 0.4)', type: 'solid', width: 2 },
+                    label: { show: false }
+                }
+            }]
+        };
+
+        myChart.setOption(option);
+        window.addEventListener('resize', () => myChart.resize());
+
+        // 2. LLENADO DE LA TABLA DINÁMICA
+        const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num);
+        const tbody = document.querySelector('#data-table tbody');
+
+        rawData.forEach((row) => {
+            const tr = document.createElement('tr');
+
+            tr.innerHTML = `
+                <td style="font-weight:700;">${row.id}</td>
+                <td style="font-weight:600;">${row.material}</td>
+                <td class="col-producidas" style="font-weight: 500; color:#555">${formatNumber(row.produc)}</td>
+                <td class="col-por-producir" style="font-weight: 600;">${formatNumber(row.porProducir)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+            } catch (error) {
+                console.error("Hubo un fallo cargando el monitor:", error);
+                alert("Error cargando los datos del servidor para el Monitor.");
+            }
+        }); // Fin del bloque async
+
+    </script>
+</body>
+</html>
