@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prototipo Monitor - Pantalla Dinámica</title>
+    <title>Monitor</title>
 
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -257,13 +257,25 @@
             const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num);
 
             try {
-                // Obtener datos
-                const response = await fetch('/api/monitor/datos');
-                if (!response.ok) throw new Error('Error al contactar al backend');
-                const rawData = await response.json();
+                // Obtener datos iniciales y exponer función de refresco en background
+                async function fetchAndUpdateData() {
+                    try {
+                        const response = await fetch('/api/monitor/datos');
+                        if (!response.ok) return;
+                        const rawData = await response.json();
+                        // Extraemos el TOP 10 y los invertimos para ECharts
+                        topData = [...rawData].slice(0, 10).reverse();
 
-                // Extraemos el TOP 10 y los invertimos para ECharts (El objeto Index 9 es el que está hasta arriba MÁS grande)
-                topData = [...rawData].slice(0, 10).reverse();
+                        // Si ya estamos en medio del ciclo, actualizamos visualmente en silencio
+                        if (myChart && typeof focusTroquel === 'function') {
+                            focusTroquel();
+                        }
+                    } catch (error) {
+                        console.error('Error al actualizar datos en background:', error);
+                    }
+                }
+
+                await fetchAndUpdateData();
 
                 // Inicializar ECharts
                 const chartDom = document.getElementById('chart-container');
@@ -394,15 +406,18 @@
                     });
                 }
 
-                // Arrancamos ciclo
+                // Arrancamos ciclo visual (Cada 20 segs ECharts enfoca un troquel diferente)
                 focusTroquel();
                 setInterval(() => {
-                    currentIndex--; // Bajamos un nivel (visualmente en ECharts esto es bajar una barra)
+                    currentIndex--; 
                     if (currentIndex < 0) {
-                        currentIndex = topData.length - 1; // Volver hasta arriba
+                        currentIndex = topData.length - 1; 
                     }
                     focusTroquel();
                 }, TIMER_MS);
+
+                // Arrancamos ciclo de actualización de Base de Datos (Cada 30 segs recarga los números en silencio)
+                setInterval(fetchAndUpdateData, 30000);
 
                 window.addEventListener('resize', () => { 
                     myChart.resize(); 

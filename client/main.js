@@ -183,6 +183,7 @@ async function executeFinalization() {
 
         await apiFinalizarMantenimiento(state.currentMaintenanceId, actividadesCompletadas);
         await resetForm();
+        document.dispatchEvent(new Event('mantenimiento:finalizado'));
         return true;
     } catch (error) {
         showToast('Error', 'No se pudo finalizar. Intenta de nuevo.', 'destructive');

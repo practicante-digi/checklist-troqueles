@@ -26,12 +26,6 @@ async function startMonitorApp() {
     const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num);
 
     try {
-        const response = await fetch('/api/monitor/datos');
-        if (!response.ok) throw new Error('Error al contactar al backend');
-        const rawData = await response.json();
-
-        topData = [...rawData].slice(0, 10).reverse();
-
         const chartDom = document.getElementById('monitor-chart-container');
         if (!chartDom) return;
         
@@ -50,56 +44,81 @@ async function startMonitorApp() {
             }
         });
 
-        // 4. Actualizar el Gráfico Directamente (Sin ciclo de focus/timer)
-        myChart.setOption({
-            grid: { left: '2%', right: '12%', bottom: '1%', top: '2%', containLabel: true },
-            xAxis: { type: 'value', max: 100, splitLine: { show: false }, axisLabel: { show: false }, axisTick: { show: false }, axisLine: { show: false } },
-            yAxis: {
-                type: 'category',
-                data: topData.map(d => d.id),
-                axisLine: { show: false }, axisTick: { show: false },
-                axisLabel: { color: '#555', fontFamily: 'Segoe UI', fontWeight: 600, fontSize: 18, margin: 15 }
-            },
-            series: [{
-                type: 'bar',
-                barWidth: '40%',
-                showBackground: true,
-                backgroundStyle: { color: '#e9ecef', borderRadius: 6 },
-                data: topData.map((d) => {
-                    let baseColor = '#343a40';
+        async function updateData() {
+            try {
+                const response = await fetch('/api/monitor/datos');
+                if (!response.ok) throw new Error('Error al contactar al backend');
+                const rawData = await response.json();
+                topData = [...rawData].slice(0, 10).reverse();
 
-                    if (d.percentage >= 100) {
-                        baseColor = '#fa5252';
-                    } else if (d.percentage >= 80) {
-                        baseColor = '#fd7e14';
-                    }
+                // 4. Actualizar el Gráfico Directamente
+                myChart.setOption({
+                    grid: { left: '2%', right: '12%', bottom: '1%', top: '2%', containLabel: true },
+                    xAxis: { type: 'value', max: 100, splitLine: { show: false }, axisLabel: { show: false }, axisTick: { show: false }, axisLine: { show: false } },
+                    yAxis: {
+                        type: 'category',
+                        data: topData.map(d => d.id),
+                        axisLine: { show: false }, axisTick: { show: false },
+                        axisLabel: { color: '#555', fontFamily: 'Segoe UI', fontWeight: 600, fontSize: 18, margin: 15 }
+                    },
+                    series: [{
+                        type: 'bar',
+                        barWidth: '40%',
+                        showBackground: true,
+                        backgroundStyle: { color: '#e9ecef', borderRadius: 6 },
+                        data: topData.map((d) => {
+                            let baseColor = '#343a40';
 
-                    return {
-                        value: d.percentage,
-                        itemStyle: {
-                            color: baseColor,
-                            opacity: 1, // <-- TODAS normales, sin enfocar
-                            borderRadius: 6
-                        },
-                        label: {
-                            show: true,
-                            position: 'right', 
-                            distance: 8,
-                            formatter: (params) => Math.round(params.value) + '%',
-                            color: baseColor,
-                            fontSize: 16,
-                            fontWeight: 800
+                            if (d.percentage >= 100) {
+                                baseColor = '#fa5252';
+                            } else if (d.percentage >= 80) {
+                                baseColor = '#fd7e14';
+                            }
+
+                            return {
+                                value: d.percentage,
+                                itemStyle: {
+                                    color: baseColor,
+                                    opacity: 1, // <-- TODAS normales, sin enfocar
+                                    borderRadius: 6
+                                },
+                                label: {
+                                    show: true,
+                                    position: 'right', 
+                                    distance: 8,
+                                    formatter: (params) => Math.round(params.value) + '%',
+                                    color: baseColor,
+                                    fontSize: 16,
+                                    fontWeight: 800
+                                }
+                            };
+                        }),
+                        markLine: {
+                            symbol: 'none',
+                            data: [{ xAxis: 85 }],
+                            lineStyle: { color: 'rgba(255, 82, 82, 0.4)', type: 'solid', width: 2 },
+                            label: { show: false }
                         }
-                    };
-                }),
-                markLine: {
-                    symbol: 'none',
-                    data: [{ xAxis: 85 }],
-                    lineStyle: { color: 'rgba(255, 82, 82, 0.4)', type: 'solid', width: 2 },
-                    label: { show: false }
+                    }]
+                });
+            } catch (error) {
+                console.error("Hubo un fallo cargando el monitor dinámico:", error);
+                if (document.getElementById('monitor-card-title')) {
+                    document.getElementById('monitor-card-title').innerText = "Sistema";
+                    document.getElementById('monitor-card-material').innerText = "Fallo de comunicación DB";
                 }
-            }]
-        });
+            }
+        }
+
+        // Carga Inicial
+        await updateData();
+
+        // 5. Automatización y Refresco en tiempo real
+        // Auto-poling como "seguro" extra si se deja abierta en background
+        setInterval(updateData, 30000); 
+
+        // Listener crítico: Reacciona al instante exacto en que cierran un mantenimiento localmente
+        document.addEventListener('mantenimiento:finalizado', updateData);
 
         window.monitorResize = () => {
             if (myChart) {
